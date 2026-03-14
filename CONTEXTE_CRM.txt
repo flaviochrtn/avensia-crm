@@ -1,0 +1,400 @@
+PROJET : CRM AVENSIA BUSINESS SCHOOL
+
+1. OBJECTIF DU PROJET
+
+Je veux transformer mon CRM actuel construit sur Notion en un vrai CRM web interne, plus robuste, plus rapide, plus clair et plus professionnel.
+
+Le but n’est pas de faire un “mini-Notion relooké”, mais un véritable outil métier adapté à Avensia Business School.
+
+Ce futur CRM doit faciliter :
+- le suivi commercial B2C des prospects étudiants
+- le suivi commercial B2B des entreprises partenaires
+- le matching entre étudiants et entreprises
+- le suivi des candidatures et des relances
+- le suivi administratif des dossiers
+- le pilotage des rendez-vous, tâches et actions à mener
+- la centralisation de toutes les informations utiles dans un seul outil
+
+Le CRM doit permettre de gagner du temps, de réduire les oublis, d’éviter les doublons, de mieux structurer le travail de l’équipe et de rendre le suivi beaucoup plus fiable.
+
+2. CONTEXTE MÉTIER
+
+Avensia Business School est une école orientée alternance.
+
+Le modèle de fonctionnement repose sur 2 piliers :
+- recruter des étudiants motivés pour les différentes formations
+- trouver ou gérer des entreprises partenaires capables de recruter ces étudiants en alternance
+
+Le CRM doit donc couvrir à la fois :
+- une logique B2C : prospection, suivi, conversion et accompagnement des étudiants
+- une logique B2B : prospection, suivi et gestion des entreprises partenaires / recruteuses
+
+Le CRM doit aider à suivre tout le tunnel de conversion, depuis le premier contact jusqu’à l’inscription finale et, si besoin, jusqu’au placement en entreprise.
+
+3. UTILISATEURS DU FUTUR CRM
+
+Le futur CRM sera utilisé par plusieurs types de profils :
+
+- Direction / management
+Besoin : vision globale, pilotage, reporting, suivi des performances, contrôle des pipelines, visibilité sur les conversions et les blocages.
+
+- Commerciaux / relations entreprises
+Besoin : suivre les prospects étudiants, relancer, prendre des rendez-vous, qualifier les besoins, suivre les entreprises, gérer les candidatures, faire le matching, centraliser les notes.
+
+- Administration / admissions
+Besoin : suivre les dossiers, vérifier les pièces manquantes, valider les étapes administratives, savoir où en est chaque étudiant, éviter les oublis, suivre les documents.
+
+- Éventuellement communication / événementiel plus tard
+Besoin : relier certains leads à des événements, campagnes ou ateliers, mais ce n’est pas forcément prioritaire pour la V1.
+
+4. FINALITÉ DU CRM
+
+Le CRM doit permettre de répondre rapidement à des questions comme :
+- Où en est tel étudiant dans le process ?
+- Quelles pièces manquent à son dossier ?
+- A-t-il déjà eu un entretien, un test, un appel, une relance ?
+- Quelle entreprise lui correspond ?
+- Quelles entreprises sont chaudes, froides ou inactives ?
+- Combien de leads sont en attente de rappel ?
+- Quelles candidatures ont été envoyées, refusées, acceptées ou en attente ?
+- Qui doit faire quoi aujourd’hui ?
+- Quels dossiers risquent de se perdre si on ne relance pas ?
+- Quels sont les taux de conversion par étape ?
+- Quels canaux ou événements apportent les meilleurs leads ?
+
+5. SITUATION ACTUELLE
+
+Aujourd’hui, une grande partie du suivi est faite dans Notion sous forme de CRM artisanal.
+
+Le système actuel fonctionne comme une base de travail, mais il atteint vite ses limites :
+- trop de clics
+- trop de vues différentes
+- manque de fluidité
+- recherche pas assez efficace
+- suivi chronologique peu lisible
+- relations entre données parfois peu claires
+- statuts pas toujours harmonisés
+- risque de doublons
+- logique administrative et logique commerciale pas assez séparées
+- difficulté à avoir une vraie vue pipeline exploitable
+- difficulté à standardiser les étapes du process
+- peu ou pas de permissions fines
+- difficulté à faire un historique propre des actions
+- difficulté à gérer proprement les tâches, rappels et responsabilités
+- difficulté à industrialiser l’outil pour une vraie équipe
+
+Le CRM Notion doit donc être considéré comme une base existante à auditer, structurer, nettoyer puis migrer.
+
+6. LOGIQUE MÉTIER GLOBALE
+
+Le process métier principal est le suivant :
+
+A. Côté étudiant
+1. Un lead étudiant entre dans le système
+2. On l’identifie, le qualifie, et on récupère ses informations principales
+3. On planifie si besoin un premier échange / appel / rendez-vous
+4. On évalue son projet, son niveau, sa motivation, sa formation cible, sa recherche d’alternance
+5. On le fait avancer dans le process d’admission
+6. On suit son dossier administratif
+7. On l’accompagne éventuellement dans sa recherche d’entreprise
+8. On le matche à une ou plusieurs entreprises
+9. On suit les candidatures envoyées
+10. On suit l’issue : inscrit, en attente, abandonné, refusé, alternance trouvée, etc.
+
+B. Côté entreprise
+1. Une entreprise est identifiée ou prospectée
+2. On récupère ses coordonnées et informations utiles
+3. On qualifie son besoin
+4. On identifie si elle recrute ou peut recruter des alternants
+5. On suit les échanges, relances et rendez-vous
+6. On crée si besoin une offre / opportunité / besoin de recrutement
+7. On propose des profils étudiants adaptés
+8. On suit les candidatures envoyées et les retours
+9. On garde un historique de la relation pour une réactivation future
+
+7. ENTITÉS MÉTIER PRINCIPALES À GÉRER
+
+Le CRM doit au minimum gérer les entités suivantes :
+
+- Étudiants / prospects étudiants
+- Entreprises
+- Contacts entreprise (si une entreprise a plusieurs interlocuteurs)
+- Candidatures
+- Offres / besoins entreprise
+- Rendez-vous / appels / entretiens
+- Tâches / relances
+- Documents / pièces administratives
+- Notes / commentaires / comptes-rendus
+- Historique / timeline des actions
+- Événements / source d’acquisition (si utile)
+
+8. DONNÉES PRINCIPALES ATTENDUES PAR ENTITÉ
+
+8.1. Étudiants
+Pour chaque étudiant, le CRM devrait idéalement permettre de stocker :
+- prénom
+- nom
+- téléphone
+- email
+- date de naissance si utile
+- ville / secteur géographique
+- formation visée
+- niveau d’études
+- situation actuelle
+- école actuelle si pertinent
+- source du lead
+- statut du lead
+- niveau de motivation / qualification
+- disponibilité
+- mobilité
+- alternance trouvée ou non
+- entreprise actuelle ou cible si connue
+- CV
+- lettre / documents utiles
+- notes libres
+- historique des échanges
+- prochaines actions à mener
+- statut administratif
+- pièces reçues / pièces manquantes
+- date de création
+- date de dernière interaction
+- owner / personne responsable du suivi
+
+8.2. Entreprises
+Pour chaque entreprise, le CRM devrait idéalement permettre de stocker :
+- nom de l’entreprise
+- secteur d’activité
+- taille si utile
+- adresse
+- ville
+- site web
+- LinkedIn
+- téléphone
+- email général
+- statut de relation
+- besoin en recrutement
+- type de profils recherchés
+- postes / alternances proposées
+- historique des échanges
+- dernière relance
+- prochaine relance
+- notes
+- owner / personne responsable du compte
+
+8.3. Contacts entreprise
+Pour chaque contact entreprise :
+- prénom
+- nom
+- poste
+- email
+- téléphone
+- entreprise liée
+- niveau d’influence / décisionnaire ou non
+- historique des échanges
+- notes
+
+8.4. Candidatures
+Pour chaque candidature :
+- étudiant concerné
+- entreprise concernée
+- poste / offre concernée
+- date d’envoi
+- canal d’envoi
+- statut de la candidature
+- date du retour
+- résultat
+- commentaires
+- prochaines étapes
+
+8.5. Tâches / relances
+Pour chaque tâche :
+- type de tâche
+- objet
+- personne responsable
+- date d’échéance
+- priorité
+- entité liée (étudiant, entreprise, candidature, etc.)
+- statut (à faire / en cours / fait / annulé)
+- commentaire
+- date de création
+- date de complétion
+
+8.6. Documents / administratif
+Pour chaque étudiant, il faut pouvoir suivre les documents suivants si applicable :
+- CV récent
+- lettre de motivation
+- bulletins scolaires des 2 dernières années
+- photocopie des diplômes obtenus
+- relevés de notes correspondants
+- photo d’identité
+- carte d’identité
+- attestation sécurité sociale
+- carte de séjour si concerné
+- contrat d’alternance précédent si concerné
+- justificatif de handicap si concerné
+
+Important :
+le CRM doit distinguer clairement :
+- documents reçus
+- documents manquants
+- documents non applicables
+
+9. RELATIONS MÉTIER IMPORTANTES
+
+Le futur CRM doit gérer proprement les relations suivantes :
+
+- un étudiant peut avoir plusieurs rendez-vous
+- un étudiant peut avoir plusieurs tâches / relances
+- un étudiant peut avoir plusieurs candidatures
+- une entreprise peut avoir plusieurs contacts
+- une entreprise peut avoir plusieurs besoins / offres
+- une entreprise peut recevoir plusieurs candidatures
+- une candidature lie au minimum un étudiant et une entreprise
+- chaque fiche doit avoir un historique horodaté
+- chaque action importante doit pouvoir être retracée
+
+10. PROBLÈMES ACTUELS À RÉSOUDRE
+
+Le futur CRM doit corriger les problèmes suivants :
+
+- données dispersées ou dupliquées
+- manque de standardisation des statuts
+- difficulté à savoir quoi faire ensuite
+- trop de dépendance à des vues Notion
+- difficulté à visualiser le pipeline global
+- difficulté à filtrer rapidement les informations utiles
+- difficulté à suivre l’administratif en parallèle du commercial
+- difficulté à savoir qui est responsable d’un lead ou d’un compte
+- pas de vraie timeline exploitable par fiche
+- manque de robustesse pour travailler en équipe
+- interface pas assez métier
+- manque de reporting opérationnel simple
+
+11. ATTENTES FONCTIONNELLES POUR LA V1
+
+La V1 doit être simple, propre, utilisable rapidement et focalisée sur l’essentiel.
+
+Fonctionnalités V1 attendues :
+- authentification simple
+- tableau de bord global
+- liste des étudiants avec filtres et recherche
+- liste des entreprises avec filtres et recherche
+- fiche détaillée étudiant
+- fiche détaillée entreprise
+- fiche candidature
+- gestion des tâches et relances
+- historique / timeline par fiche
+- suivi des statuts
+- suivi des pièces administratives
+- vue pipeline / Kanban au moins sur certains objets
+- import initial depuis Notion
+- structure de données propre, cohérente et normalisée
+
+12. FONCTIONNALITÉS SOUHAITÉES PLUS TARD, MAIS NON PRIORITAIRES POUR LA V1
+
+Ces éléments peuvent être pensés dès l’architecture, mais ne sont pas forcément à développer tout de suite :
+- emails automatiques
+- SMS / WhatsApp
+- scoring automatique de leads
+- formulaires connectés
+- synchronisation avancée avec Notion
+- reporting avancé
+- rôles et permissions très fines
+- multi-campus / multi-structures
+- automatisations IA
+- génération de documents
+- portail candidat
+- portail entreprise
+
+13. EXIGENCES PRODUIT ET UX
+
+Le CRM doit être :
+- rapide
+- très lisible
+- orienté productivité
+- simple à prendre en main
+- plus clair que Notion
+- utilisable au quotidien sans formation lourde
+- responsive, mais prioritairement pensé desktop
+- sobre visuellement
+- professionnel
+- structuré autour de vraies fiches métier, pas autour de pages floues
+
+L’UX doit permettre de faire vite les actions fréquentes :
+- retrouver une fiche
+- changer un statut
+- ajouter une note
+- créer une relance
+- voir le prochain point de blocage
+- vérifier le dossier administratif
+- retrouver l’historique
+
+14. CONTRAINTES IMPORTANTES
+
+Le projet doit être pensé comme une migration progressive depuis Notion.
+
+Important :
+- ne pas supposer que les données actuelles sont propres
+- prévoir nettoyage, normalisation et mapping
+- identifier les incohérences de champs
+- identifier les relations cassées ou ambiguës
+- prévoir une stratégie d’import robuste
+- éviter de reconstruire aveuglément les défauts du système actuel
+
+15. CE QUE J’ATTENDS DE CLAUDE DANS CE PROJET
+
+Je veux que Claude se comporte comme :
+- un product manager
+- un architecte logiciel
+- un expert CRM
+- un développeur full-stack
+- un consultant en structuration de données
+
+Je veux qu’il procède dans cet ordre :
+1. audit de l’existant
+2. proposition d’un modèle de données propre
+3. proposition d’une architecture technique claire
+4. plan de migration Notion -> nouveau CRM
+5. construction progressive d’une V1 exploitable
+6. amélioration itérative
+
+Je ne veux pas qu’il génère tout d’un bloc sans audit.
+Je veux d’abord de la clarté, de la structure et de la logique métier.
+
+16. LIVRABLES ATTENDUS DANS UN PREMIER TEMPS
+
+Dans un premier temps, Claude doit produire :
+- un audit clair du CRM actuel
+- une cartographie des entités, champs et relations
+- une liste des incohérences et points à nettoyer
+- un schéma cible de base de données
+- une proposition de stack technique
+- un plan de migration
+- une proposition de V1 réaliste
+
+17. STACK TECHNIQUE ENVISAGÉE
+
+Sauf meilleure recommandation argumentée, la stack technique envisagée est :
+- frontend : Next.js
+- base de données : PostgreSQL
+- ORM : Prisma
+- authentification : solution simple et fiable
+- interface admin : sobre, rapide, professionnelle
+- architecture maintenable, modulaire et évolutive
+
+18. PRIORITÉ ABSOLUE
+
+La priorité n’est pas de faire quelque chose de “joli”.
+La priorité est de faire un outil :
+- propre
+- solide
+- logique
+- exploitable par une équipe
+- aligné avec le vrai fonctionnement d’Avensia
+
+19. CONSIGNE FINALE
+
+Commencer par comprendre le métier, les données, les relations et les blocages.
+Ne pas coder trop vite.
+Ne pas dupliquer aveuglément la structure Notion existante.
+Transformer l’existant en un vrai système métier cohérent.

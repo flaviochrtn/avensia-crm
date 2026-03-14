@@ -1,0 +1,25 @@
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V4
+.Trashes
+
+# Notion raw exports (originals preserved locally, not needed in git)
+data/raw/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# Node (future)
+node_modules/
+.next/
+.env.local
+.env*.local
+
+# Editor
+.vscode/
+.idea/
