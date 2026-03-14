@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { StatutEntreprise, StatutEtudiant } from "@prisma/client"
-import { ResponsableForm, NoteEntrepriseForm } from "./forms"
+import { ResponsableForm, NoteEntrepriseForm, DeleteContactButton } from "./forms"
 
 const STATUT_LABELS: Record<StatutEntreprise, string> = {
   NOUVEAU:          "Nouveau",
@@ -193,21 +193,32 @@ export default async function EntrepriseDetailPage({
             </h2>
             <div className="divide-y divide-gray-100">
               {entreprise.contacts.map((c) => (
-                <div key={c.id} className="py-3 first:pt-0 last:pb-0 flex gap-6 flex-wrap">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      {c.nom_complet}
-                      {c.decideur && (
-                        <span className="ml-2 text-xs bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded">
-                          Décideur
-                        </span>
-                      )}
-                    </p>
-                    {c.poste && <p className="text-xs text-gray-500">{c.poste}</p>}
+                <div key={c.id} className="py-3 first:pt-0 last:pb-0 flex items-start justify-between gap-4 flex-wrap">
+                  <div className="flex gap-6 flex-wrap">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">
+                        {c.nom_complet}
+                        {c.decideur && (
+                          <span className="ml-2 text-xs bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded">
+                            Décideur
+                          </span>
+                        )}
+                      </p>
+                      {c.poste && <p className="text-xs text-gray-500">{c.poste}</p>}
+                    </div>
+                    <div className="flex gap-4 text-xs text-gray-600 flex-wrap items-center">
+                      {c.email && <span>{c.email}</span>}
+                      {c.telephone && <span>{c.telephone}</span>}
+                    </div>
                   </div>
-                  <div className="flex gap-4 text-xs text-gray-600 flex-wrap items-center">
-                    {c.email && <span>{c.email}</span>}
-                    {c.telephone && <span>{c.telephone}</span>}
+                  <div className="flex items-center gap-3 shrink-0">
+                    <Link
+                      href={`/entreprises/${entreprise.id}/contacts/${c.id}/edit`}
+                      className="text-xs text-gray-500 hover:text-gray-800 transition-colors"
+                    >
+                      Modifier
+                    </Link>
+                    <DeleteContactButton contactId={c.id} entrepriseId={entreprise.id} />
                   </div>
                 </div>
               ))}

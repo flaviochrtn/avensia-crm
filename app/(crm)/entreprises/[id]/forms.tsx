@@ -1,7 +1,7 @@
 "use client"
 
-import { useActionState, useEffect, useRef } from "react"
-import { assignerResponsable, ajouterNoteEntreprise, modifierEntreprise } from "./actions"
+import { useActionState, useEffect, useRef, useTransition } from "react"
+import { assignerResponsable, ajouterNoteEntreprise, modifierEntreprise, supprimerContact } from "./actions"
 import { StatutEntreprise } from "@prisma/client"
 
 type User = { id: string; prenom: string; nom: string }
@@ -17,6 +17,13 @@ const STATUT_LABELS: Record<StatutEntreprise, string> = {
   PARTENAIRE_ACTIF: "Partenaire actif",
   AUCUN_BESOIN:     "Aucun besoin",
   PERDU:            "Perdu",
+}
+
+const INPUT = "w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+
+function toDateInput(d: Date | null): string {
+  if (!d) return ""
+  return new Date(d).toISOString().slice(0, 10)
 }
 
 // ─── Réassigner le responsable ────────────────────────────────────────────────
@@ -109,7 +116,36 @@ export function NoteEntrepriseForm({ entrepriseId }: { entrepriseId: string }) {
   )
 }
 
-// ─── Éditer une entreprise ────────────────────────────────────────────────────
+// ─── Supprimer un contact ─────────────────────────────────────────────────────
+
+export function DeleteContactButton({
+  contactId,
+  entrepriseId,
+}: {
+  contactId: string
+  entrepriseId: string
+}) {
+  const [isPending, startTransition] = useTransition()
+
+  return (
+    <button
+      type="button"
+      disabled={isPending}
+      onClick={() => {
+        if (!confirm("Supprimer ce contact ?")) return
+        const fd = new FormData()
+        fd.append("contact_id", contactId)
+        fd.append("entreprise_id", entrepriseId)
+        startTransition(() => supprimerContact(fd))
+      }}
+      className="text-xs text-red-500 hover:text-red-700 disabled:opacity-50 transition-colors"
+    >
+      {isPending ? "…" : "Supprimer"}
+    </button>
+  )
+}
+
+// ─── Éditer une entreprise (tous les champs) ──────────────────────────────────
 
 export function EditEntrepriseForm({
   entreprise,
@@ -120,10 +156,23 @@ export function EditEntrepriseForm({
     nom: string
     ville: string | null
     secteur: string | null
+    type_structure: string | null
+    adresse: string | null
     telephone: string | null
     email_general: string | null
+    site_web: string | null
+    linkedin: string | null
     statut: StatutEntreprise
+    besoin_alternant: boolean | null
+    nombre_postes: number
+    formations_recherchees: string | null
+    profil_recherche: string | null
+    numero_idcc: string | null
+    campagne: string | null
+    date_premier_contact: Date | null
+    date_prochaine_relance: Date | null
     responsable_id: string | null
+    commentaire: string | null
   }
   users: User[]
 }) {
@@ -132,8 +181,13 @@ export function EditEntrepriseForm({
     { error: null }
   )
 
+  const besoinDefault =
+    entreprise.besoin_alternant === true  ? "true"
+    : entreprise.besoin_alternant === false ? "false"
+    : ""
+
   return (
-    <form action={formAction} className="space-y-5 max-w-lg">
+    <form action={formAction} className="space-y-6">
       <input type="hidden" name="entreprise_id" value={entreprise.id} />
 
       {state.error && (
@@ -142,81 +196,136 @@ export function EditEntrepriseForm({
         </p>
       )}
 
+      {/* ── Identité ── */}
       <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1">Nom *</label>
-        <input
-          name="nom"
-          required
-          defaultValue={entreprise.nom}
-          className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
-        />
+        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Identité</h2>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Nom *</label>
+            <input name="nom" required defaultValue={entreprise.nom} className={INPUT} />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Ville</label>
+              <input name="ville" defaultValue={entreprise.ville ?? ""} className={INPUT} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Secteur</label>
+              <input name="secteur" defaultValue={entreprise.secteur ?? ""} className={INPUT} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Type de structure</label>
+              <input name="type_structure" defaultValue={entreprise.type_structure ?? ""} className={INPUT} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">N° IDCC</label>
+              <input name="numero_idcc" defaultValue={entreprise.numero_idcc ?? ""} className={INPUT} />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Adresse</label>
+            <input name="adresse" defaultValue={entreprise.adresse ?? ""} className={INPUT} />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Téléphone</label>
+              <input name="telephone" type="tel" defaultValue={entreprise.telephone ?? ""} className={INPUT} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Email général</label>
+              <input name="email_general" type="email" defaultValue={entreprise.email_general ?? ""} className={INPUT} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Site web</label>
+              <input name="site_web" defaultValue={entreprise.site_web ?? ""} className={INPUT} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">LinkedIn</label>
+              <input name="linkedin" defaultValue={entreprise.linkedin ?? ""} className={INPUT} />
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Ville</label>
-          <input
-            name="ville"
-            defaultValue={entreprise.ville ?? ""}
-            className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Secteur</label>
-          <input
-            name="secteur"
-            defaultValue={entreprise.secteur ?? ""}
-            className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Téléphone</label>
-          <input
-            name="telephone"
-            type="tel"
-            defaultValue={entreprise.telephone ?? ""}
-            className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
-          <input
-            name="email_general"
-            type="email"
-            defaultValue={entreprise.email_general ?? ""}
-            className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
-          />
-        </div>
-      </div>
-
+      {/* ── Suivi commercial ── */}
       <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1">Statut</label>
-        <select
-          name="statut"
-          defaultValue={entreprise.statut}
-          className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
-        >
-          {(Object.keys(STATUT_LABELS) as StatutEntreprise[]).map((v) => (
-            <option key={v} value={v}>{STATUT_LABELS[v]}</option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1">Responsable</label>
-        <select
-          name="responsable_id"
-          defaultValue={entreprise.responsable_id ?? ""}
-          className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
-        >
-          <option value="">— Non assigné</option>
-          {users.map((u) => (
-            <option key={u.id} value={u.id}>{u.prenom} {u.nom}</option>
-          ))}
-        </select>
+        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Suivi commercial</h2>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Statut</label>
+              <select name="statut" defaultValue={entreprise.statut} className={INPUT}>
+                {(Object.keys(STATUT_LABELS) as StatutEntreprise[]).map((v) => (
+                  <option key={v} value={v}>{STATUT_LABELS[v]}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Responsable</label>
+              <select name="responsable_id" defaultValue={entreprise.responsable_id ?? ""} className={INPUT}>
+                <option value="">— Non assigné</option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>{u.prenom} {u.nom}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Besoin alternant</label>
+              <select name="besoin_alternant" defaultValue={besoinDefault} className={INPUT}>
+                <option value="">— Non renseigné</option>
+                <option value="true">Oui</option>
+                <option value="false">Non</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Nombre de postes</label>
+              <input
+                name="nombre_postes"
+                type="number"
+                min="0"
+                defaultValue={entreprise.nombre_postes > 0 ? entreprise.nombre_postes : ""}
+                className={INPUT}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Formations recherchées</label>
+            <input name="formations_recherchees" defaultValue={entreprise.formations_recherchees ?? ""} className={INPUT} />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Profil recherché</label>
+            <input name="profil_recherche" defaultValue={entreprise.profil_recherche ?? ""} className={INPUT} />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Date premier contact</label>
+              <input name="date_premier_contact" type="date" defaultValue={toDateInput(entreprise.date_premier_contact)} className={INPUT} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Prochaine relance</label>
+              <input name="date_prochaine_relance" type="date" defaultValue={toDateInput(entreprise.date_prochaine_relance)} className={INPUT} />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Campagne</label>
+            <input name="campagne" defaultValue={entreprise.campagne ?? ""} className={INPUT} />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Commentaire</label>
+            <textarea
+              name="commentaire"
+              rows={4}
+              defaultValue={entreprise.commentaire ?? ""}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 resize-none"
+            />
+          </div>
+        </div>
       </div>
 
       <div className="flex items-center gap-3 pt-2">
