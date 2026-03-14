@@ -7,6 +7,7 @@ const NAV = [
   { href: "/dashboard",  label: "Tableau de bord" },
   { href: "/etudiants",  label: "Étudiants" },
   { href: "/entreprises", label: "Entreprises" },
+  { href: "/rdvs",       label: "RDVs" },
 ]
 
 export default async function CrmLayout({

@@ -52,7 +52,7 @@ export default async function DashboardPage() {
     {
       label: "RDVs à venir",
       value: rdvsAVenir,
-      href:  "/etudiants",
+      href:  "/rdvs",
       color: "text-purple-700",
       bg:    "bg-purple-50 border-purple-200",
     },
