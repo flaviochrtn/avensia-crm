@@ -1,151 +1,126 @@
 # CORRECTIONS MANUELLES REQUISES — PHASE 0
-> À traiter avant le lancement de la Phase 1
+> Mis à jour après correction D1 — 14 mars 2026
+> Décision D1 (enseignes multi-sites) : ✅ RÉSOLUE — script relancé
 
 ---
 
-## PRIORITÉ 1 — DÉCISION BLOQUANTE (toi seul peux trancher)
+## STATUT GLOBAL
 
-### D1 — Enseignes multi-sites : doublon ou magasins distincts ?
-
-Le script a mergé 9 groupes d'entreprises sur la base du nom. Après vérification, 8 d'entre eux sont en réalité des **magasins distincts dans des villes différentes**, pas de vrais doublons.
-
-**Décision requise :** chaque magasin = une fiche entreprise séparée ? (recommandé)
-
-Si oui → je relance le script avec clé `nom + ville` pour corriger les merges.
-Si non → on garde 1 fiche par enseigne avec les contacts comme points de vente distincts.
-
-**Détail des cas concernés :**
-
-| Enseigne | Magasins mergés (villes) | Responsable(s) | Données perdues lors du merge |
+| # | Correction | Statut | Bloquant |
 |---|---|---|---|
-| **AIGLE** | Le Chesnay-Rocquencourt / Paris SGP / Les Clayes | Flavio CHARTON | 2 fiches magasin + leurs statuts distincts |
-| **AUCHAN** | Le Chesnay-Rocquencourt / Bagnolet | Flavio CHARTON | 1 fiche magasin (statut Nouveau) |
-| **Etam** | Plaisir / Les Clayes / Les Clayes | Soukeina + Flavio | 2 fiches magasin + commentaires |
-| **Intersport** | Plaisir / Montigny-le-Bretonneux | Lylian + Soukeina | 1 fiche (statut Aucun besoin + "fermer définitivement") |
-| **Castorama** | Les Clayes / Chambourcy | Soukeina + Lylian | 1 fiche magasin + responsable Lylian perdu |
-| **Grand Frais** | Montigny / Guyancourt | Moncef MIGUEL | 1 fiche magasin + commentaire |
-| **Bleu Libellule** | Montigny / Plaisir | Soukeina + Lylian | 1 fiche + responsable Soukeina perdu |
-| **Normal** | Montigny / Plaisir | Soukeina + Lylian | 1 fiche + responsable Lylian perdu |
-
-**Seul vrai doublon :** Edji (2 fiches, même ville Plaisir, même responsable) → merge correct, rien à faire.
-
-**Recommandation :** Option A — conserver 1 fiche par magasin (nom + ville). La prospection se fait magasin par magasin. Prévoir un champ `enseigne` pour regrouper si besoin de vue agrégée.
+| D1 | Enseignes multi-sites → fiches séparées | ✅ Résolu | — |
+| C1 | Vincent Fontes — split prénom/nom | ⏳ À faire | Non |
+| C2 | Jhan Leroy — split prénom/nom | ⏳ À faire | Non |
+| C3 | Syrine Kadi — split prénom/nom | ⏳ À faire | Non |
+| C4 | David GBAKATCHELCHE — email invalide | ⏳ À confirmer | Non |
+| C5 | Yassamine OUZIAD — double téléphone | ⏳ À faire | Non |
+| C6 | Tape à l'œil — téléphone avec "O" | ⏳ À faire | Non |
+| C7 | Preti — email avec espace | ⏳ À faire | Non |
+| E1 | 18 étudiants sans email | ⏳ En live | Non |
+| E2 | 75 leads sans conseiller assigné | ⏳ En live | Non |
 
 ---
 
-## PRIORITÉ 2 — CORRECTIONS DANS etudiants_clean.csv (5 corrections)
+## CORRECTIONS DANS etudiants_clean.csv
 
-À faire directement dans `data/clean/etudiants_clean.csv` avec un éditeur de texte ou Excel.
-
-### C1 — Vincent Fontes (ligne 160 du raw → chercher par nom dans le CSV clean)
+### C1 — Vincent Fontes
 **Problème :** nom en minuscules, split automatique impossible.
-**Données brutes :** `Vincent Fontes` | email: `fontesvincent2@gmail.com` | tél: `07 63 95 86 56`
-**Correction :** `prenom = Vincent` / `nom = FONTES`
-**Statut dans le CRM :** Nouveau, EN_COURS, sans conseiller assigné.
+Actuellement dans le CSV : `prenom=Vincent` / `nom=` (vide)
+**Correction :** `prenom=Vincent` / `nom=FONTES`
+**Email :** `fontesvincent2@gmail.com` ✅ valide — déjà présent
+**Tél :** `07 63 95 86 56` ✅
 
 ---
 
-### C2 — Jhan Leroy (ligne 183 du raw)
-**Problème :** nom en minuscules, split automatique impossible.
-**Données brutes :** `Jhan Leroy` | email: `j.leroy29@icloud.com` | tél: `07 62 10 70 76`
-**Correction :** `prenom = Jhan` / `nom = LEROY`
-**Statut :** Nouveau, EN_COURS.
+### C2 — Jhan Leroy
+**Problème :** nom en minuscules.
+Actuellement dans le CSV : `prenom=Jhan` / `nom=` (vide)
+**Correction :** `prenom=Jhan` / `nom=LEROY`
+**Email :** `j.leroy29@icloud.com` ✅
+**Tél :** `07 62 10 70 76` ✅
 
 ---
 
-### C3 — Syrine Kadi (ligne 187 du raw)
-**Problème :** nom en minuscules, split automatique impossible.
-**Données brutes :** `Syrine Kadi` | email: `kkadi@me.com` | tél: vide
-**Correction :** `prenom = Syrine` / `nom = KADI`
-**Statut :** Abandon — peu prioritaire mais à corriger quand même pour la cohérence.
+### C3 — Syrine Kadi
+**Problème :** nom en minuscules.
+Actuellement dans le CSV : `prenom=Syrine` / `nom=` (vide)
+**Correction :** `prenom=Syrine` / `nom=KADI`
+**Email :** `kkadi@me.com` ✅
+**Statut :** ABANDON — peu prioritaire mais cohérence du jeu de données.
 
 ---
 
-### C4 — David GBAKATCHELCHE (ligne 178 du raw)
+### C4 — David GBAKATCHELCHE
 **Problème :** email invalide — point manquant dans le domaine.
 **Email source :** `gbkdavid7@gmailcom`
 **Correction probable :** `gbkdavid7@gmail.com`
-**Vérification recommandée :** confirmer avec l'intéressé ou Flavio.
+**Action :** confirmer avec Flavio ou l'étudiant, puis corriger dans le CSV.
 
 ---
 
-### C5 — Yassamine OUZIAD (ligne 13 du raw)
-**Problème :** deux numéros de téléphone dans un seul champ.
+### C5 — Yassamine OUZIAD
+**Problème :** deux numéros dans le champ téléphone.
 **Valeur source :** `06 51 94 51 40 ou 07 58 57 17 10`
-**Correction :** choisir le numéro principal (probablement le premier).
-**Proposition :** `telephone = 06 51 94 51 40`, mettre l'autre en commentaire.
-**Statut :** RDV0_PLANIFIE, EN_COURS, Flavio CHARTON.
+**Correction :** `telephone=06 51 94 51 40`
+**Suggestion :** ajouter `07 58 57 17 10` dans le champ `commentaire`.
+**Statut :** RDV0_PLANIFIE / EN_COURS / Flavio CHARTON — actif, donc prioritaire.
 
 ---
 
-## PRIORITÉ 3 — CORRECTIONS DANS entreprises_clean.csv (2 corrections)
+## CORRECTIONS DANS entreprises_clean.csv
 
-### C6 — Tape à l'œil (Auchan Buchelay ou similaire)
-**Problème :** téléphone avec lettre "O" à la place du chiffre "0".
+### C6 — Tape à l'œil
+**Problème :** lettre "O" à la place du chiffre "0" dans le téléphone.
 **Valeur source :** `O1 34 59 44 93`
 **Correction :** `01 34 59 44 93`
-**À corriger dans :** `data/clean/entreprises_clean.csv`, ligne contenant "Tape a l'oeil".
 
 ---
 
-### C7 — Preti (Les Clayes-sous-Bois)
+### C7 — Preti
 **Problème :** email avec espace parasite.
 **Valeur source :** `les clayes@pointp.fr`
-**Correction probable :** l'email semble être un identifiant store de Point.P — vérifier si `lesclayes@pointp.fr` est valide ou si c'est une autre adresse.
-**En attendant :** supprimer la valeur (null) pour éviter d'importer un email invalide.
+**Interprétation :** semble être un identifiant store Point.P pour l'agence de Les Clayes-sous-Bois.
+**Action :** vérifier si l'email est `lesclayes@pointp.fr` ou une autre adresse.
+**En attendant :** laisser à null dans le CSV — ne pas importer un email invalide.
 
 ---
 
-## PRIORITÉ 4 — À COMPLÉTER EN LIVE DANS LE CRM (non bloquant)
-
-Ces éléments ne bloquent pas l'import mais devront être complétés dès que le CRM est opérationnel.
+## À COMPLÉTER EN LIVE DANS LE CRM (post-import)
 
 ### E1 — 18 étudiants sans email
 
-À compléter en priorité pour les leads EN_COURS et INSCRIT :
+Compléter par ordre de priorité :
 
-| Prénom NOM | Étape | Statut | Conseiller | Urgence |
+| Priorité | Prénom NOM | Étape | Statut | Conseiller |
 |---|---|---|---|---|
-| Abrar BOUDERBALA | RDV1_PLANIFIE | EN_COURS | Lylian STURM | 🔴 Haute |
-| Iris KOFFI | RDV1_PLANIFIE | EN_COURS | Lylian STURM | 🔴 Haute |
-| Aya RAHMANI | INSCRIT | INSCRIT_EN_RECHERCHE | Farid BRINI | 🔴 Haute |
-| Rania BELMADHI | INSCRIT | INSCRIT_EN_RECHERCHE | Farid BRINI | 🔴 Haute |
-| Sanaa MEDJOUDJ | RDV0_FAIT | EN_COURS | Lylian STURM | 🟠 Moyenne |
-| Tesnime ESSALAH | RDV0_FAIT | EN_COURS | Lylian STURM | 🟠 Moyenne |
-| Halima CISSAKO | RDV0_FAIT | EN_COURS | Lylian STURM | 🟠 Moyenne |
-| Inès YAKINE | RDV0_FAIT | EN_COURS | Lylian STURM | 🟠 Moyenne |
-| Blanche DORIER | RDV0_PLANIFIE | EN_COURS | Flavio CHARTON | 🟠 Moyenne |
-| Manon LEÉME | RDV0_PLANIFIE | EN_COURS | Flavio CHARTON | 🟠 Moyenne |
-| Emilie JUBEROT | RDV0_PLANIFIE | EN_COURS | Flavio CHARTON | 🟠 Moyenne |
-| Mathias PREVOST-LHOMMEUN | NOUVEAU | EN_COURS | *(non assigné)* | 🟡 Basse |
-| Raphael GARDONE | NOUVEAU | EN_COURS | *(non assigné)* | 🟡 Basse |
-| Célian OLLAGNE | NOUVEAU | EN_COURS | *(non assigné)* | 🟡 Basse |
-| Mohamed AISSE | NOUVEAU | ABANDON | Lylian STURM | 🟢 Optionnel |
-| Samy OULEMAS | NOUVEAU | ABANDON | Lylian STURM | 🟢 Optionnel |
-| Lyna SARABHI | NOUVEAU | ABANDON | Lylian STURM | 🟢 Optionnel |
-| Stephani OMORUYI | NOUVEAU | ABANDON | Lylian STURM | 🟢 Optionnel |
+| 🔴 Haute | Abrar BOUDERBALA | RDV1_PLANIFIE | EN_COURS | Lylian STURM |
+| 🔴 Haute | Iris KOFFI | RDV1_PLANIFIE | EN_COURS | Lylian STURM |
+| 🔴 Haute | Aya RAHMANI | INSCRIT | INSCRIT_EN_RECHERCHE | Farid BRINI |
+| 🔴 Haute | Rania BELMADHI | INSCRIT | INSCRIT_EN_RECHERCHE | Farid BRINI |
+| 🟠 Moyenne | Sanaa MEDJOUDJ | RDV0_FAIT | EN_COURS | Lylian STURM |
+| 🟠 Moyenne | Tesnime ESSALAH | RDV0_FAIT | EN_COURS | Lylian STURM |
+| 🟠 Moyenne | Halima CISSAKO | RDV0_FAIT | EN_COURS | Lylian STURM |
+| 🟠 Moyenne | Inès YAKINE | RDV0_FAIT | EN_COURS | Lylian STURM |
+| 🟠 Moyenne | Blanche DORIER | RDV0_PLANIFIE | EN_COURS | Flavio CHARTON |
+| 🟠 Moyenne | Manon LEÉME | RDV0_PLANIFIE | EN_COURS | Flavio CHARTON |
+| 🟠 Moyenne | Emilie JUBEROT | RDV0_PLANIFIE | EN_COURS | Flavio CHARTON |
+| 🟡 Basse | Mathias PREVOST-LHOMMEUN | NOUVEAU | EN_COURS | *(non assigné)* |
+| 🟡 Basse | Raphael GARDONE | NOUVEAU | EN_COURS | *(non assigné)* |
+| 🟡 Basse | Célian OLLAGNE | NOUVEAU | EN_COURS | *(non assigné)* |
+| 🟢 Optionnel | Mohamed AISSE | NOUVEAU | ABANDON | Lylian STURM |
+| 🟢 Optionnel | Samy OULEMAS | NOUVEAU | ABANDON | Lylian STURM |
+| 🟢 Optionnel | Lyna SARABHI | NOUVEAU | ABANDON | Lylian STURM |
+| 🟢 Optionnel | Stephani OMORUYI | NOUVEAU | ABANDON | Lylian STURM |
 
-### E2 — 75 étudiants sans conseiller référent
+### E2 — 75 leads sans conseiller référent
 
-À assigner en batch dans le CRM après import. Priorité aux leads EN_COURS et INSCRIT.
-
-### E3 — Leonor MOREIRA (ligne 192 du raw)
-Téléphone tronqué `06 08` — statut déjà "Numéro invalide". Non prioritaire.
+À assigner en batch depuis la vue liste étudiants une fois le CRM opérationnel.
+Priorité aux leads EN_COURS et INSCRIT.
 
 ---
 
-## RÉCAPITULATIF DES ACTIONS
+## NOTE — Leonor MOREIRA (téléphone tronqué)
 
-| # | Action | Qui | Quand | Bloquant |
-|---|---|---|---|---|
-| D1 | Décider : magasins distincts ou enseigne unique | Flavio | Avant Phase 1 | **OUI** |
-| D1b | Relancer le script si Option A choisie | Claude | Après D1 | **OUI** |
-| C1 | Corriger Vincent Fontes (prenom/nom) | Flavio ou Claude | Avant import | Non |
-| C2 | Corriger Jhan Leroy (prenom/nom) | Flavio ou Claude | Avant import | Non |
-| C3 | Corriger Syrine Kadi (prenom/nom) | Flavio ou Claude | Avant import | Non |
-| C4 | Vérifier/corriger email David GBAKATCHELCHE | Flavio | Avant import | Non |
-| C5 | Choisir le téléphone principal de Yassamine OUZIAD | Flavio | Avant import | Non |
-| C6 | Corriger téléphone Tape à l'œil | Flavio ou Claude | Avant import | Non |
-| C7 | Vérifier/supprimer email Preti | Flavio | Avant import | Non |
-| E1 | Compléter les 18 emails manquants (prioritaires) | Conseillers | Après import | Non |
-| E2 | Assigner 75 leads sans conseiller | Direction | Après import | Non |
+**Téléphone source :** `06 08` — incomplet.
+**Statut :** déjà flagué `INVALIDE` dans l'étape process.
+**Action :** aucune — le statut reflète déjà la situation. À mettre à jour si le vrai numéro est retrouvé.

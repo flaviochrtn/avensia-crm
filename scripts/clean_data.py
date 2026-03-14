@@ -485,41 +485,108 @@ def nettoyer_etudiants() -> tuple[list[dict], list[dict], dict]:
 
 # ─── NETTOYAGE ENTREPRISES ────────────────────────────────────────────────────
 
-def deduplicer_entreprises(rows: list[dict]) -> tuple[list[dict], int]:
+def deduplicer_entreprises(rows: list[dict]) -> "tuple[list[dict], int]":
     """
-    Déduplique les entreprises par nom normalisé.
-    En cas de doublon, conserve la ligne la plus complète.
-    Merge les commentaires.
-    """
-    groupes = {}
-    for row in rows:
-        cle = slugify(row.get("Nom entreprise", ""))
-        if not cle:
-            continue
-        if cle not in groupes:
-            groupes[cle] = []
-        groupes[cle].append(row)
+    Déduplique les entreprises selon la règle métier validée :
 
-    result = []
+      UNE FICHE = UN ÉTABLISSEMENT PHYSIQUE DISTINCT
+
+    Règle de clé de déduplication (par ordre de priorité) :
+      1. nom_slug + ville_slug + adresse_slug (si adresse disponible)
+      2. nom_slug + ville_slug               (si adresse absente des deux lignes)
+      3. nom_slug seul uniquement si les deux lignes n'ont ni ville ni adresse
+         → dans ce cas : merge UNIQUEMENT si même responsable OU mêmes données
+           identiques sur au moins 3 autres champs (forte certitude)
+
+    Conséquence : deux magasins d'une même enseigne dans deux villes différentes
+    ne sont JAMAIS mergés, quelle que soit la similitude du nom.
+    """
+
+    def cle_etablissement(row: dict) -> str:
+        """Calcule la clé d'unicité d'un établissement."""
+        nom   = slugify(row.get("Nom entreprise", ""))
+        ville = slugify(row.get("Ville", ""))
+        adr   = slugify(row.get("Adresse", ""))
+        if adr:
+            return f"{nom}||{ville}||{adr}"
+        if ville:
+            return f"{nom}||{ville}"
+        # Aucun discriminant géographique : clé = nom seul
+        # → le merge sera soumis à vérification de certitude (voir ci-dessous)
+        return f"{nom}||__novile__"
+
+    def certitude_vrai_doublon(groupe: list[dict]) -> bool:
+        """
+        Quand deux lignes partagent le même nom mais n'ont ni ville ni adresse,
+        on n'accepte le merge que si au moins 3 des champs suivants sont identiques
+        (et non vides) entre toutes les lignes du groupe.
+        """
+        champs_comparaison = [
+            "Responsable de la prospection",
+            "Téléphone",
+            "E-mail",
+            "Contact principal",
+            "Secteur d'activité ",
+        ]
+        if len(groupe) < 2:
+            return True
+        reference = groupe[0]
+        score = 0
+        for champ in champs_comparaison:
+            val_ref = reference.get(champ, "").strip().lower()
+            if not val_ref:
+                continue
+            if all(r.get(champ, "").strip().lower() == val_ref for r in groupe[1:]):
+                score += 1
+        return score >= 3
+
+    # ── Grouper par clé d'établissement ──────────────────────────────────────
+    groupes: dict = {}
+    for row in rows:
+        cle = cle_etablissement(row)
+        if not slugify(row.get("Nom entreprise", "")):
+            continue  # ligne sans nom → ignorée
+        groupes.setdefault(cle, []).append(row)
+
+    result   = []
     nb_merges = 0
+
     for cle, groupe in groupes.items():
+
+        # ── Cas simple : une seule ligne ─────────────────────────────────────
         if len(groupe) == 1:
             result.append(groupe[0])
-        else:
-            nb_merges += len(groupe) - 1
-            # Conserver la ligne la plus complète
-            meilleure = max(groupe, key=score_completude)
-            # Merger les commentaires non vides
-            commentaires = list({
-                r.get("Commentaire", "").strip()
-                for r in groupe
-                if r.get("Commentaire", "").strip()
-            })
-            meilleure["Commentaire"] = " | ".join(commentaires) if commentaires else meilleure.get("Commentaire", "")
-            log("INFO", "ENTREPRISE", "—", "deduplication",
-                f"Merge de {len(groupe)} doublons : '{meilleure.get('Nom entreprise', '')}' "
-                f"({len(groupe)} lignes → 1)")
-            result.append(meilleure)
+            continue
+
+        # ── Groupe sans discriminant géographique : vérifier la certitude ────
+        if "__novile__" in cle and not certitude_vrai_doublon(groupe):
+            # Pas assez de certitude → conserver toutes les lignes séparément
+            for row in groupe:
+                log("INFO", "ENTREPRISE", "—", "deduplication",
+                    f"Même nom sans ville, certitude insuffisante → conservées séparément : "
+                    f"'{row.get('Nom entreprise', '')}'")
+            result.extend(groupe)
+            continue
+
+        # ── Vrai doublon confirmé : merger ───────────────────────────────────
+        nb_merges += len(groupe) - 1
+        meilleure = max(groupe, key=score_completude)
+
+        # Fusionner les commentaires uniques non vides
+        commentaires = list(dict.fromkeys(
+            r.get("Commentaire", "").strip()
+            for r in groupe
+            if r.get("Commentaire", "").strip()
+        ))
+        meilleure = dict(meilleure)  # copie pour ne pas muter le raw
+        meilleure["Commentaire"] = " | ".join(commentaires) if commentaires else meilleure.get("Commentaire", "")
+
+        log("INFO", "ENTREPRISE", "—", "deduplication",
+            f"MERGE confirmé ({len(groupe)} lignes → 1) : "
+            f"'{meilleure.get('Nom entreprise', '')}' — "
+            f"ville='{meilleure.get('Ville', '')}' — "
+            f"clé='{cle}'")
+        result.append(meilleure)
 
     return result, nb_merges
 

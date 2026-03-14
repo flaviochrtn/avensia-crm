@@ -1,46 +1,38 @@
 ====================================================================================================
 RAPPORT DE NETTOYAGE — CRM AVENSIA
-Généré le 14/03/2026 à 14:28:39
+Généré le 14/03/2026 à 14:39:37
 ====================================================================================================
 
 ANOMALIES ET TRANSFORMATIONS
 ----------------------------------------------------------------------------------------------------
-[14:28:39] WARN    | ETUDIANT     | ligne 13   | telephone                           | Numéro de téléphone suspect (format invalide) | source='06 51 94 51 40 ou 07 58 57 17 10'
-[14:28:39] INFO    | ETUDIANT     | ligne 25   | email                               | Email manquant — Blanche DORIER
-[14:28:39] INFO    | ETUDIANT     | ligne 58   | email                               | Email manquant — Manon LEÉME
-[14:28:39] INFO    | ETUDIANT     | ligne 59   | email                               | Email manquant — Mohamed AISSE
-[14:28:39] INFO    | ETUDIANT     | ligne 72   | email                               | Email manquant — Mathias PREVOST-LHOMMEUN
-[14:28:39] INFO    | ETUDIANT     | ligne 73   | email                               | Email manquant — Raphael GARDONE
-[14:28:39] INFO    | ETUDIANT     | ligne 88   | email                               | Email manquant — Célian OLLAGNE
-[14:28:39] INFO    | ETUDIANT     | ligne 89   | email                               | Email manquant — Emilie JUBEROT
-[14:28:39] WARN    | ETUDIANT     | ligne 160  | prenom/nom                          | Impossible de détecter la frontière prénom/nom — premier token = prénom | source='Vincent Fontes '
-[14:28:39] WARN    | ETUDIANT     | ligne 178  | email                               | Email au format invalide | source='gbkdavid7@gmailcom'
-[14:28:39] WARN    | ETUDIANT     | ligne 183  | prenom/nom                          | Impossible de détecter la frontière prénom/nom — premier token = prénom | source='Jhan Leroy '
-[14:28:39] WARN    | ETUDIANT     | ligne 187  | prenom/nom                          | Impossible de détecter la frontière prénom/nom — premier token = prénom | source='Syrine Kadi'
-[14:28:39] INFO    | ETUDIANT     | ligne 188  | email                               | Email manquant — Samy OULEMAS
-[14:28:39] INFO    | ETUDIANT     | ligne 189  | email                               | Email manquant — Lyna SARABHI
-[14:28:39] WARN    | ETUDIANT     | ligne 192  | telephone                           | Numéro de téléphone suspect (format invalide) | source='06 08 '
-[14:28:39] INFO    | ETUDIANT     | ligne 201  | email                               | Email manquant — Aya RAHMANI
-[14:28:39] INFO    | ETUDIANT     | ligne 202  | email                               | Email manquant — Rania BELMADHI
-[14:28:39] INFO    | ETUDIANT     | ligne 203  | email                               | Email manquant — Sanaa MEDJOUDJ
-[14:28:39] INFO    | ETUDIANT     | ligne 204  | email                               | Email manquant — Tesnime ESSALAH
-[14:28:39] INFO    | ETUDIANT     | ligne 205  | email                               | Email manquant — Abrar BOUDERBALA
-[14:28:39] INFO    | ETUDIANT     | ligne 206  | email                               | Email manquant — Iris KOFFI
-[14:28:39] INFO    | ETUDIANT     | ligne 207  | email                               | Email manquant — Stephani OMORUYI
-[14:28:39] WARN    | ETUDIANT     | ligne 208  | telephone                           | Numéro de téléphone suspect (format invalide) | source='06 20 90 45 89 ( Maman) /  06 32 65 31 83 (Halima)'
-[14:28:39] INFO    | ETUDIANT     | ligne 208  | email                               | Email manquant — Halima CISSAKO
-[14:28:39] INFO    | ETUDIANT     | ligne 209  | email                               | Email manquant — Inès YAKINE
-[14:28:39] INFO    | ENTREPRISE   | ligne —    | deduplication                       | Merge de 2 doublons : 'Edji ' (2 lignes → 1)
-[14:28:39] INFO    | ENTREPRISE   | ligne —    | deduplication                       | Merge de 2 doublons : 'Intersport ' (2 lignes → 1)
-[14:28:39] INFO    | ENTREPRISE   | ligne —    | deduplication                       | Merge de 2 doublons : 'normal ' (2 lignes → 1)
-[14:28:39] INFO    | ENTREPRISE   | ligne —    | deduplication                       | Merge de 2 doublons : 'bleu libellule ' (2 lignes → 1)
-[14:28:39] INFO    | ENTREPRISE   | ligne —    | deduplication                       | Merge de 2 doublons : 'castorama ' (2 lignes → 1)
-[14:28:39] INFO    | ENTREPRISE   | ligne —    | deduplication                       | Merge de 2 doublons : 'Grand Frais ' (2 lignes → 1)
-[14:28:39] INFO    | ENTREPRISE   | ligne —    | deduplication                       | Merge de 3 doublons : 'Etam ' (3 lignes → 1)
-[14:28:39] INFO    | ENTREPRISE   | ligne —    | deduplication                       | Merge de 3 doublons : 'AIGLE' (3 lignes → 1)
-[14:28:39] INFO    | ENTREPRISE   | ligne —    | deduplication                       | Merge de 2 doublons : 'AUCHAN' (2 lignes → 1)
-[14:28:39] WARN    | ENTREPRISE   | ligne 18   | telephone                           | Numéro de téléphone suspect (format invalide) | source='O1 34 59 44 93 '
-[14:28:39] WARN    | ENTREPRISE   | ligne 53   | email                               | Email au format invalide | source='les clayes@pointp.fr'
+[14:39:37] WARN    | ETUDIANT     | ligne 13   | telephone                           | Numéro de téléphone suspect (format invalide) | source='06 51 94 51 40 ou 07 58 57 17 10'
+[14:39:37] INFO    | ETUDIANT     | ligne 25   | email                               | Email manquant — Blanche DORIER
+[14:39:37] INFO    | ETUDIANT     | ligne 58   | email                               | Email manquant — Manon LEÉME
+[14:39:37] INFO    | ETUDIANT     | ligne 59   | email                               | Email manquant — Mohamed AISSE
+[14:39:37] INFO    | ETUDIANT     | ligne 72   | email                               | Email manquant — Mathias PREVOST-LHOMMEUN
+[14:39:37] INFO    | ETUDIANT     | ligne 73   | email                               | Email manquant — Raphael GARDONE
+[14:39:37] INFO    | ETUDIANT     | ligne 88   | email                               | Email manquant — Célian OLLAGNE
+[14:39:37] INFO    | ETUDIANT     | ligne 89   | email                               | Email manquant — Emilie JUBEROT
+[14:39:37] WARN    | ETUDIANT     | ligne 160  | prenom/nom                          | Impossible de détecter la frontière prénom/nom — premier token = prénom | source='Vincent Fontes '
+[14:39:37] WARN    | ETUDIANT     | ligne 178  | email                               | Email au format invalide | source='gbkdavid7@gmailcom'
+[14:39:37] WARN    | ETUDIANT     | ligne 183  | prenom/nom                          | Impossible de détecter la frontière prénom/nom — premier token = prénom | source='Jhan Leroy '
+[14:39:37] WARN    | ETUDIANT     | ligne 187  | prenom/nom                          | Impossible de détecter la frontière prénom/nom — premier token = prénom | source='Syrine Kadi'
+[14:39:37] INFO    | ETUDIANT     | ligne 188  | email                               | Email manquant — Samy OULEMAS
+[14:39:37] INFO    | ETUDIANT     | ligne 189  | email                               | Email manquant — Lyna SARABHI
+[14:39:37] WARN    | ETUDIANT     | ligne 192  | telephone                           | Numéro de téléphone suspect (format invalide) | source='06 08 '
+[14:39:37] INFO    | ETUDIANT     | ligne 201  | email                               | Email manquant — Aya RAHMANI
+[14:39:37] INFO    | ETUDIANT     | ligne 202  | email                               | Email manquant — Rania BELMADHI
+[14:39:37] INFO    | ETUDIANT     | ligne 203  | email                               | Email manquant — Sanaa MEDJOUDJ
+[14:39:37] INFO    | ETUDIANT     | ligne 204  | email                               | Email manquant — Tesnime ESSALAH
+[14:39:37] INFO    | ETUDIANT     | ligne 205  | email                               | Email manquant — Abrar BOUDERBALA
+[14:39:37] INFO    | ETUDIANT     | ligne 206  | email                               | Email manquant — Iris KOFFI
+[14:39:37] INFO    | ETUDIANT     | ligne 207  | email                               | Email manquant — Stephani OMORUYI
+[14:39:37] WARN    | ETUDIANT     | ligne 208  | telephone                           | Numéro de téléphone suspect (format invalide) | source='06 20 90 45 89 ( Maman) /  06 32 65 31 83 (Halima)'
+[14:39:37] INFO    | ETUDIANT     | ligne 208  | email                               | Email manquant — Halima CISSAKO
+[14:39:37] INFO    | ETUDIANT     | ligne 209  | email                               | Email manquant — Inès YAKINE
+[14:39:37] INFO    | ENTREPRISE   | ligne —    | deduplication                       | MERGE confirmé (2 lignes → 1) : 'Edji ' — ville='Plaisir' — clé='edji||plaisir'
+[14:39:37] WARN    | ENTREPRISE   | ligne 18   | telephone                           | Numéro de téléphone suspect (format invalide) | source='O1 34 59 44 93 '
+[14:39:37] WARN    | ENTREPRISE   | ligne 55   | email                               | Email au format invalide | source='les clayes@pointp.fr'
 
 ====================================================================================================
 STATISTIQUES DE COUVERTURE
@@ -86,22 +78,22 @@ STATISTIQUES DE COUVERTURE
     cree_par                                 ████████████████████ 215/215 (100.0%)
 
   ENTREPRISES
-    nom                                      ████████████████████ 134/134 (100.0%)
-    secteur                                  █████████████████░░░ 116/134 ( 86.6%)
-    type_structure                           █░░░░░░░░░░░░░░░░░░░   7/134 (  5.2%)
-    adresse                                  █████████░░░░░░░░░░░  66/134 ( 49.3%)
-    ville                                    ███████████████████░ 131/134 ( 97.8%)
-    telephone                                ████████████████░░░░ 109/134 ( 81.3%)
-    email_general                            █████░░░░░░░░░░░░░░░  34/134 ( 25.4%)
-    besoin_alternant                         ██░░░░░░░░░░░░░░░░░░  16/134 ( 11.9%)
-    statut                                   ████████████████████ 134/134 (100.0%)
-    date_premier_contact                     ████████████████░░░░ 111/134 ( 82.8%)
-    date_prochaine_relance                   ██████████░░░░░░░░░░  68/134 ( 50.7%)
-    responsable_nom                          ██████████████████░░ 121/134 ( 90.3%)
-    commentaire                              ███████░░░░░░░░░░░░░  51/134 ( 38.1%)
-    nombre_postes                            ░░░░░░░░░░░░░░░░░░░░   5/134 (  3.7%)
-    formations_recherchees                   ████░░░░░░░░░░░░░░░░  30/134 ( 22.4%)
-    profil_recherche                         ░░░░░░░░░░░░░░░░░░░░   3/134 (  2.2%)
-    numero_idcc                              ░░░░░░░░░░░░░░░░░░░░   0/134 (  0.0%)
-    campagne                                 ██░░░░░░░░░░░░░░░░░░  14/134 ( 10.4%)
-    created_at_notion                        ░░░░░░░░░░░░░░░░░░░░   0/134 (  0.0%)
+    nom                                      ████████████████████ 144/144 (100.0%)
+    secteur                                  █████████████████░░░ 125/144 ( 86.8%)
+    type_structure                           ░░░░░░░░░░░░░░░░░░░░   7/144 (  4.9%)
+    adresse                                  █████████░░░░░░░░░░░  71/144 ( 49.3%)
+    ville                                    ███████████████████░ 141/144 ( 97.9%)
+    telephone                                ████████████████░░░░ 116/144 ( 80.6%)
+    email_general                            ████░░░░░░░░░░░░░░░░  34/144 ( 23.6%)
+    besoin_alternant                         ██░░░░░░░░░░░░░░░░░░  16/144 ( 11.1%)
+    statut                                   ████████████████████ 144/144 (100.0%)
+    date_premier_contact                     ████████████████░░░░ 119/144 ( 82.6%)
+    date_prochaine_relance                   ██████████░░░░░░░░░░  72/144 ( 50.0%)
+    responsable_nom                          ██████████████████░░ 131/144 ( 91.0%)
+    commentaire                              ███████░░░░░░░░░░░░░  54/144 ( 37.5%)
+    nombre_postes                            ░░░░░░░░░░░░░░░░░░░░   5/144 (  3.5%)
+    formations_recherchees                   ████░░░░░░░░░░░░░░░░  30/144 ( 20.8%)
+    profil_recherche                         ░░░░░░░░░░░░░░░░░░░░   3/144 (  2.1%)
+    numero_idcc                              ░░░░░░░░░░░░░░░░░░░░   0/144 (  0.0%)
+    campagne                                 █░░░░░░░░░░░░░░░░░░░  14/144 (  9.7%)
+    created_at_notion                        ░░░░░░░░░░░░░░░░░░░░   0/144 (  0.0%)
