@@ -84,7 +84,15 @@ export default async function EntrepriseDetailPage({
 
       {/* En-tête */}
       <div className="mb-6">
-        <h1 className="text-xl font-semibold text-gray-900">{entreprise.nom}</h1>
+        <div className="flex items-start justify-between gap-3">
+          <h1 className="text-xl font-semibold text-gray-900">{entreprise.nom}</h1>
+          <Link
+            href={`/entreprises/${entreprise.id}/edit`}
+            className="text-sm border border-gray-300 px-3 py-1.5 rounded-md text-gray-700 hover:bg-gray-50 transition-colors shrink-0"
+          >
+            Modifier
+          </Link>
+        </div>
         <div className="flex gap-2 mt-1 flex-wrap items-center">
           <span className={`text-xs px-2 py-0.5 rounded font-medium ${STATUT_COLORS[entreprise.statut]}`}>
             {STATUT_LABELS[entreprise.statut]}

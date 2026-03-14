@@ -125,6 +125,12 @@ export default async function EtudiantsPage({
           <h1 className="text-xl font-semibold text-gray-900">Étudiants</h1>
           <p className="text-sm text-gray-500 mt-0.5">{total} résultat{total !== 1 ? "s" : ""}</p>
         </div>
+        <Link
+          href="/etudiants/new"
+          className="bg-gray-900 text-white text-sm px-4 py-2 rounded-md hover:bg-gray-800 transition-colors"
+        >
+          + Nouvel étudiant
+        </Link>
       </div>
 
       {/* Alerte sans conseiller */}

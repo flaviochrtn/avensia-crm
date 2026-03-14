@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
 import { z } from "zod"
 import { EtapeEtudiant, StatutEtudiant, TypeRDV, StatutRDV } from "@prisma/client"
 
@@ -40,6 +41,59 @@ export async function changerStatutEtudiant(
   revalidatePath(`/etudiants/${etudiant_id}`)
   revalidatePath("/etudiants")
   return { error: null, success: true }
+}
+
+// ─── Modifier un étudiant ─────────────────────────────────────────────────────
+
+const modifierEtudiantSchema = z.object({
+  etudiant_id:   z.string().min(1),
+  prenom:        z.string().min(1, "Prénom obligatoire").max(100),
+  nom:           z.string().min(1, "Nom obligatoire").max(100),
+  email:         z.string().email("Email invalide").optional().or(z.literal("")),
+  telephone:     z.string().max(30).optional(),
+  ville:         z.string().max(100).optional(),
+  formation_id:  z.string().optional(),
+  statut:        z.nativeEnum(StatutEtudiant),
+  etape_process: z.nativeEnum(EtapeEtudiant),
+  conseiller_id: z.string().optional(),
+})
+
+export async function modifierEtudiant(
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const session = await auth()
+  if (!session) return { error: "Non autorisé" }
+
+  const parsed = modifierEtudiantSchema.safeParse({
+    etudiant_id:   formData.get("etudiant_id"),
+    prenom:        formData.get("prenom"),
+    nom:           formData.get("nom"),
+    email:         formData.get("email") || undefined,
+    telephone:     formData.get("telephone") || undefined,
+    ville:         formData.get("ville") || undefined,
+    formation_id:  formData.get("formation_id") || undefined,
+    statut:        formData.get("statut"),
+    etape_process: formData.get("etape_process"),
+    conseiller_id: formData.get("conseiller_id") || undefined,
+  })
+  if (!parsed.success) return { error: parsed.error.errors[0].message }
+
+  const { etudiant_id, email, formation_id, conseiller_id, ...rest } = parsed.data
+
+  await prisma.etudiant.update({
+    where: { id: etudiant_id },
+    data: {
+      ...rest,
+      email:         email || null,
+      formation_id:  formation_id || null,
+      conseiller_id: conseiller_id || null,
+    },
+  })
+
+  revalidatePath(`/etudiants/${etudiant_id}`)
+  revalidatePath("/etudiants")
+  redirect(`/etudiants/${etudiant_id}`)
 }
 
 // ─── Ajouter une note ─────────────────────────────────────────────────────────

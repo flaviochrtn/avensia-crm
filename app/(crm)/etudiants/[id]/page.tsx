@@ -94,15 +94,23 @@ export default async function EtudiantDetailPage({
 
       {/* En-tête */}
       <div className="mb-6">
-        <div className="flex items-start gap-3 flex-wrap">
-          <h1 className="text-xl font-semibold text-gray-900">
-            {etudiant.prenom} {etudiant.nom}
-          </h1>
-          {etudiant.formation && (
-            <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded self-center">
-              {etudiant.formation.code}
-            </span>
-          )}
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div className="flex items-start gap-3 flex-wrap">
+            <h1 className="text-xl font-semibold text-gray-900">
+              {etudiant.prenom} {etudiant.nom}
+            </h1>
+            {etudiant.formation && (
+              <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded self-center">
+                {etudiant.formation.code}
+              </span>
+            )}
+          </div>
+          <Link
+            href={`/etudiants/${etudiant.id}/edit`}
+            className="text-sm border border-gray-300 px-3 py-1.5 rounded-md text-gray-700 hover:bg-gray-50 transition-colors shrink-0"
+          >
+            Modifier
+          </Link>
         </div>
         <StatutForm
           etudiantId={etudiant.id}

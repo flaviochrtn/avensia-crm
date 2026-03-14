@@ -120,6 +120,12 @@ export default async function EntreprisesPage({
           <h1 className="text-xl font-semibold text-gray-900">Entreprises</h1>
           <p className="text-sm text-gray-500 mt-0.5">{total} résultat{total !== 1 ? "s" : ""}</p>
         </div>
+        <Link
+          href="/entreprises/new"
+          className="bg-gray-900 text-white text-sm px-4 py-2 rounded-md hover:bg-gray-800 transition-colors"
+        >
+          + Nouvelle entreprise
+        </Link>
       </div>
 
       {/* Alerte sans responsable */}
