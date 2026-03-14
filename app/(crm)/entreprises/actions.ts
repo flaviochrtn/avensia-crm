@@ -9,6 +9,11 @@ import { StatutEntreprise } from "@prisma/client"
 
 type ActionState = { error: string | null }
 
+function s(val: FormDataEntryValue | null): string | null {
+  const v = (val as string ?? "").trim()
+  return v || null
+}
+
 // ─── Créer une entreprise ─────────────────────────────────────────────────────
 
 const createEntrepriseSchema = z.object({
@@ -16,7 +21,7 @@ const createEntrepriseSchema = z.object({
   ville:          z.string().max(100).optional(),
   secteur:        z.string().max(100).optional(),
   telephone:      z.string().max(30).optional(),
-  email_general:  z.string().email("Email invalide").optional().or(z.literal("")),
+  email_general:  z.string().email("Email invalide").optional(),
   statut:         z.nativeEnum(StatutEntreprise),
   responsable_id: z.string().optional(),
 })
@@ -28,28 +33,40 @@ export async function creerEntreprise(
   const session = await auth()
   if (!session) return { error: "Non autorisé" }
 
+  const emailRaw = s(formData.get("email_general"))?.toLowerCase() ?? undefined
+
   const parsed = createEntrepriseSchema.safeParse({
-    nom:            formData.get("nom"),
-    ville:          formData.get("ville") || undefined,
-    secteur:        formData.get("secteur") || undefined,
-    telephone:      formData.get("telephone") || undefined,
-    email_general:  formData.get("email_general") || undefined,
+    nom:            s(formData.get("nom")),
+    ville:          s(formData.get("ville")) ?? undefined,
+    secteur:        s(formData.get("secteur")) ?? undefined,
+    telephone:      s(formData.get("telephone")) ?? undefined,
+    email_general:  emailRaw,
     statut:         formData.get("statut"),
-    responsable_id: formData.get("responsable_id") || undefined,
+    responsable_id: s(formData.get("responsable_id")) ?? undefined,
   })
   if (!parsed.success) return { error: parsed.error.errors[0].message }
+
+  // Doublon email_general
+  if (parsed.data.email_general) {
+    const existing = await prisma.entreprise.findFirst({
+      where: { email_general: parsed.data.email_general, deleted_at: null },
+      select: { id: true },
+    })
+    if (existing) return { error: "Une entreprise avec cet email existe déjà" }
+  }
 
   const { email_general, responsable_id, ...rest } = parsed.data
 
   const entreprise = await prisma.entreprise.create({
     data: {
       ...rest,
-      email_general:  email_general || null,
-      responsable_id: responsable_id || null,
+      email_general:  email_general ?? null,
+      responsable_id: responsable_id ?? null,
     },
   })
 
   revalidatePath("/entreprises")
+  revalidatePath("/dashboard")
   redirect(`/entreprises/${entreprise.id}`)
 }
 

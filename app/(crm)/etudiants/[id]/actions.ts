@@ -9,6 +9,11 @@ import { EtapeEtudiant, StatutEtudiant, TypeRDV, StatutRDV } from "@prisma/clien
 
 type ActionState = { error: string | null; success?: boolean }
 
+function s(val: FormDataEntryValue | null): string | null {
+  const v = (val as string ?? "").trim()
+  return v || null
+}
+
 // ─── Changer statut / étape ───────────────────────────────────────────────────
 
 const statutSchema = z.object({
@@ -49,7 +54,7 @@ const modifierEtudiantSchema = z.object({
   etudiant_id:   z.string().min(1),
   prenom:        z.string().min(1, "Prénom obligatoire").max(100),
   nom:           z.string().min(1, "Nom obligatoire").max(100),
-  email:         z.string().email("Email invalide").optional().or(z.literal("")),
+  email:         z.string().email("Email invalide").optional(),
   telephone:     z.string().max(30).optional(),
   ville:         z.string().max(100).optional(),
   formation_id:  z.string().optional(),
@@ -65,34 +70,53 @@ export async function modifierEtudiant(
   const session = await auth()
   if (!session) return { error: "Non autorisé" }
 
+  const emailRaw = s(formData.get("email"))?.toLowerCase() ?? undefined
+
   const parsed = modifierEtudiantSchema.safeParse({
     etudiant_id:   formData.get("etudiant_id"),
-    prenom:        formData.get("prenom"),
-    nom:           formData.get("nom"),
-    email:         formData.get("email") || undefined,
-    telephone:     formData.get("telephone") || undefined,
-    ville:         formData.get("ville") || undefined,
-    formation_id:  formData.get("formation_id") || undefined,
+    prenom:        s(formData.get("prenom")),
+    nom:           s(formData.get("nom")),
+    email:         emailRaw,
+    telephone:     s(formData.get("telephone")) ?? undefined,
+    ville:         s(formData.get("ville")) ?? undefined,
+    formation_id:  s(formData.get("formation_id")) ?? undefined,
     statut:        formData.get("statut"),
     etape_process: formData.get("etape_process"),
-    conseiller_id: formData.get("conseiller_id") || undefined,
+    conseiller_id: s(formData.get("conseiller_id")) ?? undefined,
   })
   if (!parsed.success) return { error: parsed.error.errors[0].message }
 
   const { etudiant_id, email, formation_id, conseiller_id, ...rest } = parsed.data
 
+  // Vérifier que l'étudiant existe
+  const existing = await prisma.etudiant.findUnique({
+    where: { id: etudiant_id, deleted_at: null },
+    select: { id: true },
+  })
+  if (!existing) return { error: "Étudiant introuvable" }
+
+  // Doublon email (ignorer le même étudiant)
+  if (email) {
+    const doublon = await prisma.etudiant.findFirst({
+      where: { email, deleted_at: null, NOT: { id: etudiant_id } },
+      select: { id: true },
+    })
+    if (doublon) return { error: "Cet email est déjà utilisé par un autre étudiant" }
+  }
+
   await prisma.etudiant.update({
     where: { id: etudiant_id },
     data: {
       ...rest,
-      email:         email || null,
-      formation_id:  formation_id || null,
-      conseiller_id: conseiller_id || null,
+      email:         email ?? null,
+      formation_id:  formation_id ?? null,
+      conseiller_id: conseiller_id ?? null,
     },
   })
 
   revalidatePath(`/etudiants/${etudiant_id}`)
   revalidatePath("/etudiants")
+  revalidatePath("/dashboard")
   redirect(`/etudiants/${etudiant_id}`)
 }
 
