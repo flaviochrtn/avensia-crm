@@ -4,6 +4,7 @@ import { signOut } from "@/lib/auth"
 import Link from "next/link"
 
 const NAV = [
+  { href: "/dashboard",  label: "Tableau de bord" },
   { href: "/etudiants",  label: "Étudiants" },
   { href: "/entreprises", label: "Entreprises" },
 ]

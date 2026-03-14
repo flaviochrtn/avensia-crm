@@ -58,8 +58,8 @@ export default async function EtudiantsPage({
   const statut       = params.statut as StatutEtudiant | undefined
   const etape        = params.etape as EtapeEtudiant | undefined
   const conseiller_id = params.conseiller_id ?? ""
-  const page         = Math.max(1, parseInt(params.page ?? "1", 10))
-  const skip         = (page - 1) * PAGE_SIZE
+  const page          = Math.max(1, parseInt(params.page ?? "1", 10))
+  const skip          = (page - 1) * PAGE_SIZE
 
   // Filtres Prisma
   const where: Prisma.EtudiantWhereInput = {
@@ -73,7 +73,11 @@ export default async function EtudiantsPage({
     }),
     ...(statut && { statut }),
     ...(etape  && { etape_process: etape }),
-    ...(conseiller_id && { conseiller_id }),
+    ...(conseiller_id === "none"
+      ? { conseiller_id: null }
+      : conseiller_id
+      ? { conseiller_id }
+      : {}),
   }
 
   const [etudiants, total, conseillers] = await Promise.all([
@@ -114,6 +118,8 @@ export default async function EtudiantsPage({
     return `/etudiants?${sp.toString()}`
   }
 
+  const sansConseiller = etudiants.filter((e) => !e.conseiller).length
+
   return (
     <div className="p-6">
       {/* Header */}
@@ -123,6 +129,21 @@ export default async function EtudiantsPage({
           <p className="text-sm text-gray-500 mt-0.5">{total} résultat{total !== 1 ? "s" : ""}</p>
         </div>
       </div>
+
+      {/* Alerte sans conseiller */}
+      {!conseiller_id && sansConseiller > 0 && (
+        <div className="mb-4 px-4 py-2.5 bg-orange-50 border border-orange-200 rounded-md text-sm text-orange-800 flex items-center justify-between">
+          <span>
+            <strong>{sansConseiller}</strong> étudiant{sansConseiller > 1 ? "s" : ""} sans conseiller sur cette page
+          </span>
+          <Link
+            href="/etudiants?conseiller_id=none"
+            className="text-orange-700 underline hover:text-orange-900 text-xs ml-4 shrink-0"
+          >
+            Voir tous →
+          </Link>
+        </div>
+      )}
 
       {/* Filtres */}
       <form method="GET" className="flex flex-wrap gap-3 mb-5">
@@ -161,6 +182,7 @@ export default async function EtudiantsPage({
           className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
         >
           <option value="">Tous les conseillers</option>
+          <option value="none">— Sans conseiller</option>
           {conseillers.map((c) => (
             <option key={c.id} value={c.id}>
               {c.prenom} {c.nom}
@@ -208,7 +230,7 @@ export default async function EtudiantsPage({
               </tr>
             )}
             {etudiants.map((e) => (
-              <tr key={e.id} className="hover:bg-gray-50 transition-colors">
+              <tr key={e.id} className={`hover:bg-gray-50 transition-colors ${!e.conseiller ? "bg-orange-50/40" : ""}`}>
                 <td className="px-4 py-3 font-medium text-gray-900">
                   <Link href={`/etudiants/${e.id}`} className="hover:underline">
                     {e.prenom} {e.nom}
@@ -226,7 +248,10 @@ export default async function EtudiantsPage({
                   </span>
                 </td>
                 <td className="px-4 py-3 text-gray-600">
-                  {e.conseiller ? `${e.conseiller.prenom} ${e.conseiller.nom}` : "—"}
+                  {e.conseiller
+                    ? `${e.conseiller.prenom} ${e.conseiller.nom}`
+                    : <span className="text-orange-600 text-xs font-medium">Non assigné</span>
+                  }
                 </td>
               </tr>
             ))}
