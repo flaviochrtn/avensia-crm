@@ -9,13 +9,13 @@
 | # | Correction | Statut | Bloquant |
 |---|---|---|---|
 | D1 | Enseignes multi-sites → fiches séparées | ✅ Résolu | — |
-| C1 | Vincent Fontes — split prénom/nom | ⏳ À faire | Non |
-| C2 | Jhan Leroy — split prénom/nom | ⏳ À faire | Non |
-| C3 | Syrine Kadi — split prénom/nom | ⏳ À faire | Non |
-| C4 | David GBAKATCHELCHE — email invalide | ⏳ À confirmer | Non |
-| C5 | Yassamine OUZIAD — double téléphone | ⏳ À faire | Non |
-| C6 | Tape à l'œil — téléphone avec "O" | ⏳ À faire | Non |
-| C7 | Preti — email avec espace | ⏳ À faire | Non |
+| C1 | Vincent Fontes — split prénom/nom | ✅ Appliqué | — |
+| C2 | Jhan Leroy — split prénom/nom | ✅ Appliqué | — |
+| C3 | Syrine Kadi — split prénom/nom | ✅ Appliqué | — |
+| C4 | David GBAKATCHELCHE — email invalide | ✅ Nullifié — à confirmer en live | — |
+| C5 | Yassamine OUZIAD — double téléphone | ✅ Appliqué | — |
+| C6 | Tape à l'œil — téléphone avec "O" | ✅ Appliqué | — |
+| C7 | Preti — email avec espace | ✅ Déjà vide — RAS | — |
 | E1 | 18 étudiants sans email | ⏳ En live | Non |
 | E2 | 75 leads sans conseiller assigné | ⏳ En live | Non |
 
@@ -23,65 +23,34 @@
 
 ## CORRECTIONS DANS etudiants_clean.csv
 
-### C1 — Vincent Fontes
-**Problème :** nom en minuscules, split automatique impossible.
-Actuellement dans le CSV : `prenom=Vincent` / `nom=` (vide)
-**Correction :** `prenom=Vincent` / `nom=FONTES`
-**Email :** `fontesvincent2@gmail.com` ✅ valide — déjà présent
-**Tél :** `07 63 95 86 56` ✅
+### C1 — Vincent Fontes ✅ APPLIQUÉ
+`nom: 'Fontes' → 'FONTES'` — script apply_manual_fixes.py du 14/03/2026.
 
----
+### C2 — Jhan Leroy ✅ APPLIQUÉ
+`nom: 'Leroy' → 'LEROY'`
 
-### C2 — Jhan Leroy
-**Problème :** nom en minuscules.
-Actuellement dans le CSV : `prenom=Jhan` / `nom=` (vide)
-**Correction :** `prenom=Jhan` / `nom=LEROY`
-**Email :** `j.leroy29@icloud.com` ✅
-**Tél :** `07 62 10 70 76` ✅
+### C3 — Syrine Kadi ✅ APPLIQUÉ
+`nom: 'Kadi' → 'KADI'`
 
----
+### C4 — David GBAKATCHELCHE ✅ NULLIFIÉ — confirmation requise en live
+`email: 'gbkdavid7@gmailcom' → ''` (null — email invalide, point manquant dans le domaine)
+**Action restante :** retrouver l'étudiant, confirmer si l'email est `gbkdavid7@gmail.com`, puis mettre à jour dans le CRM après import.
 
-### C3 — Syrine Kadi
-**Problème :** nom en minuscules.
-Actuellement dans le CSV : `prenom=Syrine` / `nom=` (vide)
-**Correction :** `prenom=Syrine` / `nom=KADI`
-**Email :** `kkadi@me.com` ✅
-**Statut :** ABANDON — peu prioritaire mais cohérence du jeu de données.
-
----
-
-### C4 — David GBAKATCHELCHE
-**Problème :** email invalide — point manquant dans le domaine.
-**Email source :** `gbkdavid7@gmailcom`
-**Correction probable :** `gbkdavid7@gmail.com`
-**Action :** confirmer avec Flavio ou l'étudiant, puis corriger dans le CSV.
-
----
-
-### C5 — Yassamine OUZIAD
-**Problème :** deux numéros dans le champ téléphone.
-**Valeur source :** `06 51 94 51 40 ou 07 58 57 17 10`
-**Correction :** `telephone=06 51 94 51 40`
-**Suggestion :** ajouter `07 58 57 17 10` dans le champ `commentaire`.
-**Statut :** RDV0_PLANIFIE / EN_COURS / Flavio CHARTON — actif, donc prioritaire.
+### C5 — Yassamine OUZIAD ✅ APPLIQUÉ
+`telephone: '06 51 94 51 40 ou 07 58 57 17 10' → '06 51 94 51 40'`
+`commentaire: '' → 'Second tél : 07 58 57 17 10'`
+**Note :** il existe une deuxième personne nommée `Yasmine OUZIAD` (sans double s) — deux personnes distinctes, non touchée.
 
 ---
 
 ## CORRECTIONS DANS entreprises_clean.csv
 
-### C6 — Tape à l'œil
-**Problème :** lettre "O" à la place du chiffre "0" dans le téléphone.
-**Valeur source :** `O1 34 59 44 93`
-**Correction :** `01 34 59 44 93`
+### C6 — Tape à l'œil ✅ APPLIQUÉ
+`telephone: 'O1 34 59 44 93' → '01 34 59 44 93'`
 
----
-
-### C7 — Preti
-**Problème :** email avec espace parasite.
-**Valeur source :** `les clayes@pointp.fr`
-**Interprétation :** semble être un identifiant store Point.P pour l'agence de Les Clayes-sous-Bois.
-**Action :** vérifier si l'email est `lesclayes@pointp.fr` ou une autre adresse.
-**En attendant :** laisser à null dans le CSV — ne pas importer un email invalide.
+### C7 — Preti ✅ RAS — déjà vide
+`email_general` était déjà vide dans le CSV clean. Aucune action nécessaire.
+L'email source (`les clayes@pointp.fr`) reste dans les fichiers raw uniquement.
 
 ---
 

@@ -6,12 +6,15 @@
 ## STATUT
 
 ```
-Phase 0 : TERMINÉE ✅
-          → Décision D1 validée et appliquée (enseignes multi-sites conservées séparément)
-          → Script relancé avec nouvelle règle de déduplication (nom + ville + adresse)
-          → 7 corrections manuelles restantes (non bloquantes pour l'import)
-          → 18 emails manquants (non bloquants, à compléter en live)
-          → FEUX VERTS pour la Phase 1
+Phase 0 : CLÔTURÉE ✅
+          → D1 : enseignes multi-sites conservées séparément (règle nom+ville+adresse)
+          → C1-C3 : splits prénom/nom corrigés (Fontes, Leroy, Kadi)
+          → C4 : email David GBAKATCHELCHE nullifié — à confirmer en live
+          → C5 : double téléphone Yassamine OUZIAD résolu
+          → C6 : téléphone Tape à l'œil corrigé
+          → C7 : Preti email déjà vide — RAS
+          → 18 emails manquants — à compléter en live (non bloquant)
+          → FEU VERT PHASE 1 ✅
 ```
 
 ---
