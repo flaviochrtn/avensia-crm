@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import { StatutEntreprise, Prisma } from "@prisma/client"
+import { AssignResponsableSelect } from "./AssignSelect"
 
 const PAGE_SIZE = 30
 
@@ -236,11 +237,12 @@ export default async function EntreprisesPage({
                     {STATUT_LABELS[e.statut]}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-gray-600">
-                  {e.responsable
-                    ? `${e.responsable.prenom} ${e.responsable.nom}`
-                    : <span className="text-orange-600 text-xs font-medium">Non assigné</span>
-                  }
+                <td className="px-4 py-3">
+                  <AssignResponsableSelect
+                    entrepriseId={e.id}
+                    responsableId={e.responsable?.id ?? null}
+                    users={responsables}
+                  />
                 </td>
                 <td className="px-4 py-3 text-gray-600">{e._count.contacts}</td>
               </tr>

@@ -1,10 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
-import {
-  EtapeEtudiant,
-  StatutEtudiant,
-  Prisma,
-} from "@prisma/client"
+import { EtapeEtudiant, StatutEtudiant, Prisma } from "@prisma/client"
+import { AssignConseillerSelect } from "./AssignSelect"
 
 const PAGE_SIZE = 30
 
@@ -247,11 +244,12 @@ export default async function EtudiantsPage({
                     {STATUT_LABELS[e.statut]}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-gray-600">
-                  {e.conseiller
-                    ? `${e.conseiller.prenom} ${e.conseiller.nom}`
-                    : <span className="text-orange-600 text-xs font-medium">Non assigné</span>
-                  }
+                <td className="px-4 py-3">
+                  <AssignConseillerSelect
+                    etudiantId={e.id}
+                    conseillerId={e.conseiller?.id ?? null}
+                    users={conseillers}
+                  />
                 </td>
               </tr>
             ))}
