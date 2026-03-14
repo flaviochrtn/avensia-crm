@@ -279,6 +279,36 @@ npx tsx scripts/import/import_rdvs.ts
 
 ---
 
+## AVANCEMENT PHASE 1
+
+### ✅ Étapes terminées
+
+| Étape | Statut | Date |
+|-------|--------|------|
+| Initialisation Next.js 15 + TypeScript | ✅ | 14/03/2026 |
+| Configuration Tailwind v4 | ✅ | 14/03/2026 |
+| Schéma Prisma (12 modèles, 14 enums, indexes) | ✅ | 14/03/2026 |
+| Configuration Neon (DATABASE_URL + DIRECT_URL) | ✅ | 14/03/2026 |
+| Migration initiale `20260314155345_init` | ✅ | 14/03/2026 |
+| 16 tables vérifiées en base Neon | ✅ | 14/03/2026 |
+| Auth.js v5 (Credentials, JWT, PrismaAdapter) | ✅ | 14/03/2026 |
+| Layout CRM avec garde d'auth | ✅ | 14/03/2026 |
+| `prisma/seed.ts` (5 users + 10 formations) | ✅ | 14/03/2026 |
+| Scripts d'import (entreprises, contacts, étudiants, rdvs) | ✅ | 14/03/2026 |
+| `docs/IMPORT_STRATEGY.md` | ✅ | 14/03/2026 |
+
+### ⏳ Étapes restantes
+
+| Étape | Prérequis |
+|-------|-----------|
+| Exécution seed réel | Validation utilisateur |
+| Dry-run imports | Validation utilisateur + seed exécuté |
+| Import réel | Dry-run validé |
+| Configuration shadcn/ui | - |
+| Pages CRUD (Phase 2) | Import validé |
+
+---
+
 ## CRITÈRES DE SUCCÈS PHASE 1
 
 - [ ] `npm run dev` démarre sans erreur
