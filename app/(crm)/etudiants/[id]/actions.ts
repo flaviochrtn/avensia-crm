@@ -45,6 +45,7 @@ export async function changerStatutEtudiant(
 
   revalidatePath(`/etudiants/${etudiant_id}`)
   revalidatePath("/etudiants")
+  revalidatePath("/dashboard")
   return { error: null, success: true }
 }
 
@@ -200,5 +201,6 @@ export async function creerRDV(
   })
 
   revalidatePath(`/etudiants/${etudiant_id}`)
+  revalidatePath("/dashboard")
   return { error: null, success: true }
 }
