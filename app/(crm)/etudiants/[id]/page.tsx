@@ -66,7 +66,7 @@ export default async function EtudiantDetailPage({
   const { id } = await params
 
   const [etudiant, entreprises] = await Promise.all([
-    prisma.etudiant.findUnique({
+    prisma.etudiant.findFirst({
       where: { id, deleted_at: null },
       include: {
         formation:       true,

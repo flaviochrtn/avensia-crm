@@ -116,7 +116,7 @@ export async function modifierEntreprise(
   } = parsed.data
 
   // Vérifier existence
-  const existing = await prisma.entreprise.findUnique({
+  const existing = await prisma.entreprise.findFirst({
     where: { id: entreprise_id, deleted_at: null },
     select: { id: true },
   })

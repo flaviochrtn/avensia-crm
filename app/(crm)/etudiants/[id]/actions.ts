@@ -165,7 +165,7 @@ export async function modifierEtudiant(
   } = parsed.data
 
   // Vérifier que l'étudiant existe
-  const existing = await prisma.etudiant.findUnique({
+  const existing = await prisma.etudiant.findFirst({
     where: { id: etudiant_id, deleted_at: null },
     select: { id: true },
   })
@@ -190,7 +190,7 @@ export async function modifierEtudiant(
     if (!c) return { error: "Conseiller introuvable" }
   }
   if (entreprise_liee_id) {
-    const e = await prisma.entreprise.findUnique({
+    const e = await prisma.entreprise.findFirst({
       where: { id: entreprise_liee_id, deleted_at: null },
       select: { id: true },
     })
@@ -433,7 +433,7 @@ export async function creerHistoriqueAlternance(
   }
 
   if (entreprise_id) {
-    const e = await prisma.entreprise.findUnique({ where: { id: entreprise_id, deleted_at: null }, select: { id: true } })
+    const e = await prisma.entreprise.findFirst({ where: { id: entreprise_id, deleted_at: null }, select: { id: true } })
     if (!e) return { error: "Entreprise introuvable" }
   }
 
@@ -486,7 +486,7 @@ export async function modifierHistoriqueAlternance(
   if (!existing || existing.etudiant_id !== etudiant_id) return { error: "Contrat introuvable" }
 
   if (entreprise_id) {
-    const e = await prisma.entreprise.findUnique({ where: { id: entreprise_id, deleted_at: null }, select: { id: true } })
+    const e = await prisma.entreprise.findFirst({ where: { id: entreprise_id, deleted_at: null }, select: { id: true } })
     if (!e) return { error: "Entreprise introuvable" }
   }
 

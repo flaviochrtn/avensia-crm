@@ -11,7 +11,7 @@ export default async function EditContactPage({
   const { id, contactId } = await params
 
   const [entreprise, contact] = await Promise.all([
-    prisma.entreprise.findUnique({
+    prisma.entreprise.findFirst({
       where: { id, deleted_at: null },
       select: { id: true, nom: true },
     }),

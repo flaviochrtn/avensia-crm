@@ -173,14 +173,14 @@ model User {
   updated_at DateTime @updatedAt
 
   // Auth.js
-  accounts   Account[]
-  sessions   Session[]
+  accounts Account[]
+  sessions Session[]
 
   // Métier
-  etudiants_assignes    Etudiant[]   @relation("ConseillerRef")
-  entreprises_assignees Entreprise[] @relation("ResponsableProspection")
-  taches_assignees      Tache[]      @relation("TacheAssignee")
-  rdvs_animes           RendezVous[] @relation("AnimePar")
+  etudiants_assignes    Etudiant[]    @relation("ConseillerRef")
+  entreprises_assignees Entreprise[]  @relation("ResponsableProspection")
+  taches_assignees      Tache[]       @relation("TacheAssignee")
+  rdvs_animes           RendezVous[]  @relation("AnimePar")
   notes_creees          Note[]
   logs_actions          ActivityLog[]
 }
@@ -224,77 +224,77 @@ model VerificationToken {
 // ─── RÉFÉRENTIEL ──────────────────────────────────────────────────────────────
 
 model Formation {
-  id         String     @id @default(uuid())
-  code       String     @unique
+  id         String   @id @default(uuid())
+  code       String   @unique
   nom        String
   niveau     String
   duree_mois Int
-  actif      Boolean    @default(true)
-  created_at DateTime   @default(now())
+  actif      Boolean  @default(true)
+  created_at DateTime @default(now())
 
-  etudiants  Etudiant[]
+  etudiants Etudiant[]
 }
 
 // ─── ENTITÉS PRINCIPALES ──────────────────────────────────────────────────────
 
 model Etudiant {
-  id                     String          @id @default(uuid())
-  prenom                 String
-  nom                    String
-  email                  String?
-  telephone              String?
-  date_naissance         DateTime?
-  sexe                   Sexe?
-  adresse                String?
-  ville                  String?
-  permis                 Boolean?
-  vehicule               Boolean?
-  situation_handicap     Boolean?        // nullable : inconnu ≠ faux
+  id                 String    @id @default(uuid())
+  prenom             String
+  nom                String
+  email              String?
+  telephone          String?
+  date_naissance     DateTime?
+  sexe               Sexe?
+  adresse            String?
+  ville              String?
+  permis             Boolean?
+  vehicule           Boolean?
+  situation_handicap Boolean? // nullable : inconnu ≠ faux
 
-  formation_id           String?
-  formation              Formation?      @relation(fields: [formation_id], references: [id])
-  type_contrat           TypeContrat?
-  diplome_actuel         String?
-  formation_actuelle     String?
-  specialisation         String?
+  formation_id       String?
+  formation          Formation?   @relation(fields: [formation_id], references: [id])
+  type_contrat       TypeContrat?
+  diplome_actuel     String?
+  formation_actuelle String?
+  specialisation     String?
 
-  etape_process          EtapeEtudiant   @default(NOUVEAU)
-  statut                 StatutEtudiant  @default(EN_COURS)
-  niveau_motivation      Int?
-  niveau_test            String?
-  niveau_cours           String?
-  origine_contact        OrigineContact?
-  statut_motivation      String?
-  campagne               String?
-  apporteur_nom          String?
+  etape_process     EtapeEtudiant   @default(NOUVEAU)
+  statut            StatutEtudiant  @default(EN_COURS)
+  niveau_motivation Int?
+  niveau_test       String?
+  niveau_cours      String?
+  origine_contact   OrigineContact?
+  statut_motivation String?
+  campagne          String?
+  apporteur_nom     String?
 
-  conseiller_id          String?
-  conseiller             User?           @relation("ConseillerRef", fields: [conseiller_id], references: [id])
+  conseiller_id String?
+  conseiller    User?   @relation("ConseillerRef", fields: [conseiller_id], references: [id])
 
-  entreprise_liee_id     String?
-  entreprise_liee        Entreprise?     @relation("EtudiantEntrepriseLiee", fields: [entreprise_liee_id], references: [id])
+  entreprise_liee_id String?
+  entreprise_liee    Entreprise? @relation("EtudiantEntrepriseLiee", fields: [entreprise_liee_id], references: [id])
 
-  date_premier_contact    DateTime?
-  date_prochaine_relance  DateTime?
-  note_prochaine_relance  String?
-  pack_suivi_alternance   String?
-  cv_url                  String?
-  commentaire             String?
+  date_premier_contact   DateTime?
+  date_prochaine_relance DateTime?
+  note_prochaine_relance String?
+  pack_suivi_alternance  String?
+  cv_url                 String?
+  commentaire            String?
 
   date_entree_formation   DateTime?
   date_sortie_formation   DateTime?
   date_rentree_officielle DateTime?
 
-  created_at             DateTime        @default(now())
-  updated_at             DateTime        @updatedAt
-  deleted_at             DateTime?
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
 
-  rdvs          RendezVous[]
-  taches        Tache[]
-  documents     Document[]
-  candidatures  Candidature[]
-  notes         Note[]
-  activity_logs ActivityLog[]
+  rdvs                   RendezVous[]
+  taches                 Tache[]
+  documents              Document[]
+  candidatures           Candidature[]
+  notes                  Note[]
+  activity_logs          ActivityLog[]
   historique_alternances HistoriqueAlternance[]
 
   @@index([statut])
@@ -304,16 +304,16 @@ model Etudiant {
 }
 
 model Entreprise {
-  id                     String           @id @default(uuid())
-  nom                    String
-  secteur                String?
-  type_structure         String?
-  adresse                String?
-  ville                  String?
-  telephone              String?
-  email_general          String?
-  site_web               String?
-  linkedin               String?
+  id             String  @id @default(uuid())
+  nom            String
+  secteur        String?
+  type_structure String?
+  adresse        String?
+  ville          String?
+  telephone      String?
+  email_general  String?
+  site_web       String?
+  linkedin       String?
 
   statut                 StatutEntreprise @default(NOUVEAU)
   besoin_alternant       Boolean?
@@ -326,23 +326,23 @@ model Entreprise {
   date_premier_contact   DateTime?
   date_prochaine_relance DateTime?
 
-  responsable_id         String?
-  responsable            User?            @relation("ResponsableProspection", fields: [responsable_id], references: [id])
+  responsable_id String?
+  responsable    User?   @relation("ResponsableProspection", fields: [responsable_id], references: [id])
 
-  commentaire            String?
+  commentaire String?
 
-  created_at             DateTime         @default(now())
-  updated_at             DateTime         @updatedAt
-  deleted_at             DateTime?
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
 
-  contacts       ContactEntreprise[]
-  offres         Offre[]
-  rdvs           RendezVous[]
-  taches         Tache[]
-  candidatures   Candidature[]
-  notes          Note[]
-  activity_logs  ActivityLog[]
-  etudiants_lies Etudiant[]        @relation("EtudiantEntrepriseLiee")
+  contacts               ContactEntreprise[]
+  offres                 Offre[]
+  rdvs                   RendezVous[]
+  taches                 Tache[]
+  candidatures           Candidature[]
+  notes                  Note[]
+  activity_logs          ActivityLog[]
+  etudiants_lies         Etudiant[]             @relation("EtudiantEntrepriseLiee")
   historique_alternances HistoriqueAlternance[]
 
   @@index([nom])
@@ -352,65 +352,65 @@ model Entreprise {
 }
 
 model ContactEntreprise {
-  id            String     @id @default(uuid())
-  nom_complet   String
-  prenom        String?
-  poste         String?
-  email         String?
-  telephone     String?
-  decideur      Boolean    @default(false)
+  id          String  @id @default(uuid())
+  nom_complet String
+  prenom      String?
+  poste       String?
+  email       String?
+  telephone   String?
+  decideur    Boolean @default(false)
 
   entreprise_id String
   entreprise    Entreprise @relation(fields: [entreprise_id], references: [id])
 
-  created_at    DateTime   @default(now())
-  updated_at    DateTime   @updatedAt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   @@index([entreprise_id])
 }
 
 model Offre {
-  id               String      @id @default(uuid())
+  id               String       @id @default(uuid())
   titre            String
   description      String?
   type_contrat     TypeContrat?
-  nombre_postes    Int         @default(1)
-  statut           StatutOffre @default(OUVERTE)
+  nombre_postes    Int          @default(1)
+  statut           StatutOffre  @default(OUVERTE)
   date_debut       DateTime?
   formation_ciblee String?
 
-  entreprise_id    String
-  entreprise       Entreprise  @relation(fields: [entreprise_id], references: [id])
+  entreprise_id String
+  entreprise    Entreprise @relation(fields: [entreprise_id], references: [id])
 
-  candidatures     Candidature[]
+  candidatures Candidature[]
 
-  created_at       DateTime    @default(now())
-  updated_at       DateTime    @updatedAt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   @@index([entreprise_id])
   @@index([statut])
 }
 
 model Candidature {
-  id            String            @id @default(uuid())
-  statut        StatutCandidature @default(A_ENVOYER)
-  date_envoi    DateTime?
-  canal_envoi   String?
-  date_retour   DateTime?
-  commentaire   String?
+  id          String            @id @default(uuid())
+  statut      StatutCandidature @default(A_ENVOYER)
+  date_envoi  DateTime?
+  canal_envoi String?
+  date_retour DateTime?
+  commentaire String?
 
   etudiant_id   String
-  etudiant      Etudiant          @relation(fields: [etudiant_id], references: [id])
+  etudiant      Etudiant   @relation(fields: [etudiant_id], references: [id])
   entreprise_id String
-  entreprise    Entreprise        @relation(fields: [entreprise_id], references: [id])
+  entreprise    Entreprise @relation(fields: [entreprise_id], references: [id])
   offre_id      String?
-  offre         Offre?            @relation(fields: [offre_id], references: [id])
+  offre         Offre?     @relation(fields: [offre_id], references: [id])
 
   notes         Note[]
   activity_logs ActivityLog[]
 
-  created_at    DateTime          @default(now())
-  updated_at    DateTime          @updatedAt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   @@index([etudiant_id])
   @@index([entreprise_id])
@@ -421,11 +421,11 @@ model Candidature {
 // ─── ACTIVITÉS ────────────────────────────────────────────────────────────────
 
 model RendezVous {
-  id            String      @id @default(uuid())
+  id            String    @id @default(uuid())
   type          TypeRDV
   date          DateTime?
   duree_minutes Int?
-  statut        StatutRDV   @default(PLANIFIE)
+  statut        StatutRDV @default(PLANIFIE)
   notes         String?
   numero_rdv    Int?
 
@@ -436,8 +436,8 @@ model RendezVous {
   animateur_id  String?
   animateur     User?       @relation("AnimePar", fields: [animateur_id], references: [id])
 
-  created_at    DateTime    @default(now())
-  updated_at    DateTime    @updatedAt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   @@index([etudiant_id])
   @@index([entreprise_id])
@@ -462,8 +462,8 @@ model Tache {
   entreprise_id String?
   entreprise    Entreprise? @relation(fields: [entreprise_id], references: [id])
 
-  created_at    DateTime    @default(now())
-  updated_at    DateTime    @updatedAt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   @@index([assigne_id])
   @@index([statut])
@@ -483,10 +483,10 @@ model Document {
   commentaire String?
 
   etudiant_id String
-  etudiant    Etudiant       @relation(fields: [etudiant_id], references: [id])
+  etudiant    Etudiant @relation(fields: [etudiant_id], references: [id])
 
-  created_at  DateTime       @default(now())
-  updated_at  DateTime       @updatedAt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   @@index([etudiant_id])
   @@index([type])
@@ -496,10 +496,10 @@ model Document {
 // ─── TRANSVERSAL ──────────────────────────────────────────────────────────────
 
 model Note {
-  id             String       @id @default(uuid())
-  contenu        String
-  auteur_id      String?
-  auteur         User?        @relation(fields: [auteur_id], references: [id])
+  id        String  @id @default(uuid())
+  contenu   String
+  auteur_id String?
+  auteur    User?   @relation(fields: [auteur_id], references: [id])
 
   etudiant_id    String?
   etudiant       Etudiant?    @relation(fields: [etudiant_id], references: [id])
@@ -508,7 +508,7 @@ model Note {
   candidature_id String?
   candidature    Candidature? @relation(fields: [candidature_id], references: [id])
 
-  created_at     DateTime     @default(now())
+  created_at DateTime @default(now())
 
   @@index([etudiant_id])
   @@index([entreprise_id])
@@ -517,14 +517,14 @@ model Note {
 }
 
 model ActivityLog {
-  id              String       @id @default(uuid())
+  id              String  @id @default(uuid())
   action          String
   champ           String?
   ancienne_valeur String?
   nouvelle_valeur String?
   auteur_id       String?
-  auteur          User?        @relation(fields: [auteur_id], references: [id])
-  auteur_nom      String?      // dénormalisé : survit à la suppression du user
+  auteur          User?   @relation(fields: [auteur_id], references: [id])
+  auteur_nom      String? // dénormalisé : survit à la suppression du user
 
   etudiant_id    String?
   etudiant       Etudiant?    @relation(fields: [etudiant_id], references: [id])
@@ -533,7 +533,7 @@ model ActivityLog {
   candidature_id String?
   candidature    Candidature? @relation(fields: [candidature_id], references: [id])
 
-  created_at     DateTime     @default(now())
+  created_at DateTime @default(now())
 
   @@index([etudiant_id])
   @@index([entreprise_id])

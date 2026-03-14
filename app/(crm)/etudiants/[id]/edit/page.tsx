@@ -11,7 +11,7 @@ export default async function EditEtudiantPage({
   const { id } = await params
 
   const [etudiant, formations, users, entreprises] = await Promise.all([
-    prisma.etudiant.findUnique({
+    prisma.etudiant.findFirst({
       where: { id, deleted_at: null },
       select: {
         id:                     true,

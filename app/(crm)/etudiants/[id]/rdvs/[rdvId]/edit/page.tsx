@@ -20,7 +20,7 @@ export default async function EditRdvPage({
   const { id, rdvId } = await params
 
   const [etudiant, rdv] = await Promise.all([
-    prisma.etudiant.findUnique({
+    prisma.etudiant.findFirst({
       where: { id, deleted_at: null },
       select: { id: true, prenom: true, nom: true },
     }),

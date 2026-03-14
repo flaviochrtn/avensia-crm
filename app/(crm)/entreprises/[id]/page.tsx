@@ -54,7 +54,7 @@ export default async function EntrepriseDetailPage({
   const { id } = await params
 
   const [entreprise, users] = await Promise.all([
-    prisma.entreprise.findUnique({
+    prisma.entreprise.findFirst({
     where: { id, deleted_at: null },
     include: {
       responsable:    { select: { prenom: true, nom: true, email: true } },

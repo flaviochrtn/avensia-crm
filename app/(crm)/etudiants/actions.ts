@@ -64,7 +64,7 @@ export async function creerEtudiant(
 
   // Vérifier l'entreprise liée
   if (parsed.data.entreprise_liee_id) {
-    const ent = await prisma.entreprise.findUnique({
+    const ent = await prisma.entreprise.findFirst({
       where: { id: parsed.data.entreprise_liee_id, deleted_at: null },
       select: { id: true },
     })

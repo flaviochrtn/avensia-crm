@@ -11,7 +11,7 @@ export default async function EditAlternancePage({
   const { id, alternanceId } = await params
 
   const [etudiant, alternance, entreprises] = await Promise.all([
-    prisma.etudiant.findUnique({
+    prisma.etudiant.findFirst({
       where: { id, deleted_at: null },
       select: { id: true, prenom: true, nom: true },
     }),
