@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { EtapeEtudiant, StatutEtudiant, StatutRDV, TypeRDV } from "@prisma/client"
-import { StatutForm, NoteEtudiantForm, RDVForm } from "./forms"
+import { StatutForm, NoteEtudiantForm, RDVForm, DeleteRdvButton } from "./forms"
 
 const ETAPE_LABELS: Record<EtapeEtudiant, string> = {
   NOUVEAU:           "Nouveau",
@@ -214,14 +214,25 @@ export default async function EtudiantDetailPage({
             <div className="divide-y divide-gray-100">
               {etudiant.rdvs.map((rdv) => (
                 <div key={rdv.id} className="py-3 first:pt-0 last:pb-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-medium text-gray-800">
-                      {rdv.numero_rdv ? `RDV #${rdv.numero_rdv} — ` : ""}
-                      {TYPE_RDV_LABELS[rdv.type]}
-                    </span>
-                    <span className={`text-xs px-2 py-0.5 rounded ${STATUT_RDV_COLORS[rdv.statut]}`}>
-                      {STATUT_RDV_LABELS[rdv.statut]}
-                    </span>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-medium text-gray-800">
+                        {rdv.numero_rdv ? `RDV #${rdv.numero_rdv} — ` : ""}
+                        {TYPE_RDV_LABELS[rdv.type]}
+                      </span>
+                      <span className={`text-xs px-2 py-0.5 rounded ${STATUT_RDV_COLORS[rdv.statut]}`}>
+                        {STATUT_RDV_LABELS[rdv.statut]}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <Link
+                        href={`/etudiants/${etudiant.id}/rdvs/${rdv.id}/edit`}
+                        className="text-xs text-gray-500 hover:text-gray-800 transition-colors"
+                      >
+                        Modifier
+                      </Link>
+                      <DeleteRdvButton rdvId={rdv.id} etudiantId={etudiant.id} />
+                    </div>
                   </div>
                   {rdv.date && (
                     <p className="text-xs text-gray-500 mt-0.5">

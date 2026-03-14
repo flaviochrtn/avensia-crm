@@ -1,10 +1,18 @@
 "use client"
 
-import { useActionState, useEffect, useRef } from "react"
-import { changerStatutEtudiant, ajouterNoteEtudiant, creerRDV, modifierEtudiant } from "./actions"
-import { EtapeEtudiant, StatutEtudiant, TypeRDV, StatutRDV } from "@prisma/client"
+import { useActionState, useEffect, useRef, useTransition } from "react"
+import {
+  changerStatutEtudiant, ajouterNoteEtudiant, creerRDV,
+  modifierEtudiant, supprimerRDV,
+} from "./actions"
+import {
+  EtapeEtudiant, StatutEtudiant, TypeRDV, StatutRDV,
+  Sexe, TypeContrat, OrigineContact,
+} from "@prisma/client"
 
 type ActionState = { error: string | null; success?: boolean }
+
+// ─── Labels ───────────────────────────────────────────────────────────────────
 
 const ETAPE_LABELS: Record<EtapeEtudiant, string> = {
   NOUVEAU:           "Nouveau",
@@ -44,6 +52,25 @@ const STATUT_RDV_LABELS: Record<StatutRDV, string> = {
   NO_SHOW:  "No-show",
 }
 
+// Helper : formate une Date pour <input type="date">
+function toDateInput(d: Date | null): string {
+  if (!d) return ""
+  return new Date(d).toISOString().split("T")[0]
+}
+
+// Helper : formate un booléen nullable pour un select tri-état
+function toBoolSelect(v: boolean | null): string {
+  if (v === true) return "true"
+  if (v === false) return "false"
+  return ""
+}
+
+const INPUT = "w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+
+function Label({ children }: { children: React.ReactNode }) {
+  return <label className="block text-xs font-medium text-gray-600 mb-1">{children}</label>
+}
+
 // ─── Changer statut / étape ───────────────────────────────────────────────────
 
 export function StatutForm({
@@ -66,11 +93,7 @@ export function StatutForm({
 
       <div>
         <label className="block text-xs text-gray-500 mb-1">Étape</label>
-        <select
-          name="etape_process"
-          defaultValue={etape}
-          className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
-        >
+        <select name="etape_process" defaultValue={etape} className={INPUT}>
           {(Object.keys(ETAPE_LABELS) as EtapeEtudiant[]).map((val) => (
             <option key={val} value={val}>{ETAPE_LABELS[val]}</option>
           ))}
@@ -79,11 +102,7 @@ export function StatutForm({
 
       <div>
         <label className="block text-xs text-gray-500 mb-1">Statut</label>
-        <select
-          name="statut"
-          defaultValue={statut}
-          className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
-        >
+        <select name="statut" defaultValue={statut} className={INPUT}>
           {(Object.keys(STATUT_LABELS) as StatutEtudiant[]).map((val) => (
             <option key={val} value={val}>{STATUT_LABELS[val]}</option>
           ))}
@@ -163,11 +182,7 @@ export function RDVForm({ etudiantId }: { etudiantId: string }) {
       <div className="flex flex-wrap gap-3">
         <div>
           <label className="block text-xs text-gray-500 mb-1">Type</label>
-          <select
-            name="type"
-            required
-            className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
-          >
+          <select name="type" required className={INPUT}>
             {(Object.keys(TYPE_RDV_LABELS) as TypeRDV[]).map((val) => (
               <option key={val} value={val}>{TYPE_RDV_LABELS[val]}</option>
             ))}
@@ -176,11 +191,7 @@ export function RDVForm({ etudiantId }: { etudiantId: string }) {
 
         <div>
           <label className="block text-xs text-gray-500 mb-1">Statut</label>
-          <select
-            name="statut"
-            defaultValue="PLANIFIE"
-            className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
-          >
+          <select name="statut" defaultValue="PLANIFIE" className={INPUT}>
             {(Object.keys(STATUT_RDV_LABELS) as StatutRDV[]).map((val) => (
               <option key={val} value={val}>{STATUT_RDV_LABELS[val]}</option>
             ))}
@@ -189,11 +200,7 @@ export function RDVForm({ etudiantId }: { etudiantId: string }) {
 
         <div>
           <label className="block text-xs text-gray-500 mb-1">Date (optionnelle)</label>
-          <input
-            name="date"
-            type="datetime-local"
-            className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
-          />
+          <input name="date" type="datetime-local" className={INPUT} />
         </div>
       </div>
 
@@ -222,7 +229,39 @@ export function RDVForm({ etudiantId }: { etudiantId: string }) {
   )
 }
 
-// ─── Éditer un étudiant ───────────────────────────────────────────────────────
+// ─── Supprimer un RDV ─────────────────────────────────────────────────────────
+
+export function DeleteRdvButton({
+  rdvId,
+  etudiantId,
+}: {
+  rdvId: string
+  etudiantId: string
+}) {
+  const [isPending, startTransition] = useTransition()
+
+  function handleDelete() {
+    if (!confirm("Supprimer ce rendez-vous ?")) return
+    startTransition(async () => {
+      const fd = new FormData()
+      fd.append("rdv_id", rdvId)
+      fd.append("etudiant_id", etudiantId)
+      await supprimerRDV(fd)
+    })
+  }
+
+  return (
+    <button
+      onClick={handleDelete}
+      disabled={isPending}
+      className="text-xs text-red-600 hover:text-red-800 disabled:opacity-40 transition-colors"
+    >
+      {isPending ? "…" : "Supprimer"}
+    </button>
+  )
+}
+
+// ─── Éditer un étudiant (champs complets) ─────────────────────────────────────
 
 type Formation  = { id: string; code: string; nom: string }
 type User       = { id: string; prenom: string; nom: string }
@@ -240,12 +279,35 @@ export function EditEtudiantForm({
     nom: string
     email: string | null
     telephone: string | null
+    date_naissance: Date | null
+    sexe: Sexe | null
+    adresse: string | null
     ville: string | null
+    permis: boolean | null
+    vehicule: boolean | null
+    situation_handicap: boolean | null
     formation_id: string | null
-    statut: StatutEtudiant
+    type_contrat: TypeContrat | null
+    diplome_actuel: string | null
+    formation_actuelle: string | null
+    specialisation: string | null
     etape_process: EtapeEtudiant
+    statut: StatutEtudiant
+    niveau_motivation: number | null
+    niveau_test: string | null
+    niveau_cours: string | null
+    origine_contact: OrigineContact | null
+    statut_motivation: string | null
+    campagne: string | null
+    apporteur_nom: string | null
     conseiller_id: string | null
     entreprise_liee_id: string | null
+    date_premier_contact: Date | null
+    date_prochaine_relance: Date | null
+    note_prochaine_relance: string | null
+    pack_suivi_alternance: string | null
+    cv_url: string | null
+    commentaire: string | null
   }
   formations: Formation[]
   users: User[]
@@ -257,7 +319,7 @@ export function EditEtudiantForm({
   )
 
   return (
-    <form action={formAction} className="space-y-5 max-w-lg">
+    <form action={formAction} className="space-y-6">
       <input type="hidden" name="etudiant_id" value={etudiant.id} />
 
       {state.error && (
@@ -266,129 +328,275 @@ export function EditEtudiantForm({
         </p>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Prénom *</label>
-          <input
-            name="prenom"
-            required
-            defaultValue={etudiant.prenom}
-            className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Nom *</label>
-          <input
-            name="nom"
-            required
-            defaultValue={etudiant.nom}
-            className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
-          />
-        </div>
-      </div>
+      {/* Identité */}
+      <section className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+        <h2 className="text-sm font-semibold text-gray-700">Identité</h2>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
-          <input
-            name="email"
-            type="email"
-            defaultValue={etudiant.email ?? ""}
-            className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Prénom *</Label>
+            <input name="prenom" required defaultValue={etudiant.prenom} className={INPUT} />
+          </div>
+          <div>
+            <Label>Nom *</Label>
+            <input name="nom" required defaultValue={etudiant.nom} className={INPUT} />
+          </div>
         </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Téléphone</label>
-          <input
-            name="telephone"
-            type="tel"
-            defaultValue={etudiant.telephone ?? ""}
-            className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
-          />
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Email</Label>
+            <input name="email" type="email" defaultValue={etudiant.email ?? ""} className={INPUT} />
+          </div>
+          <div>
+            <Label>Téléphone</Label>
+            <input name="telephone" type="tel" defaultValue={etudiant.telephone ?? ""} className={INPUT} />
+          </div>
         </div>
-      </div>
 
-      <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1">Ville</label>
-        <input
-          name="ville"
-          defaultValue={etudiant.ville ?? ""}
-          className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
-        />
-      </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Date de naissance</Label>
+            <input name="date_naissance" type="date" defaultValue={toDateInput(etudiant.date_naissance)} className={INPUT} />
+          </div>
+          <div>
+            <Label>Sexe</Label>
+            <select name="sexe" defaultValue={etudiant.sexe ?? ""} className={INPUT}>
+              <option value="">— Non renseigné</option>
+              <option value="M">Masculin</option>
+              <option value="F">Féminin</option>
+              <option value="AUTRE">Autre</option>
+            </select>
+          </div>
+        </div>
 
-      <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1">Formation</label>
-        <select
-          name="formation_id"
-          defaultValue={etudiant.formation_id ?? ""}
-          className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
-        >
-          <option value="">— Aucune</option>
-          {formations.map((f) => (
-            <option key={f.id} value={f.id}>{f.code} — {f.nom}</option>
-          ))}
-        </select>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Statut</label>
-          <select
-            name="statut"
-            defaultValue={etudiant.statut}
-            className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
-          >
-            {(Object.keys(STATUT_LABELS) as StatutEtudiant[]).map((v) => (
-              <option key={v} value={v}>{STATUT_LABELS[v]}</option>
+          <Label>Adresse</Label>
+          <input name="adresse" defaultValue={etudiant.adresse ?? ""} className={INPUT} />
+        </div>
+
+        <div>
+          <Label>Ville</Label>
+          <input name="ville" defaultValue={etudiant.ville ?? ""} className={INPUT} />
+        </div>
+
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <Label>Permis</Label>
+            <select name="permis" defaultValue={toBoolSelect(etudiant.permis)} className={INPUT}>
+              <option value="">— Non renseigné</option>
+              <option value="true">Oui</option>
+              <option value="false">Non</option>
+            </select>
+          </div>
+          <div>
+            <Label>Véhicule</Label>
+            <select name="vehicule" defaultValue={toBoolSelect(etudiant.vehicule)} className={INPUT}>
+              <option value="">— Non renseigné</option>
+              <option value="true">Oui</option>
+              <option value="false">Non</option>
+            </select>
+          </div>
+          <div>
+            <Label>Situation handicap</Label>
+            <select name="situation_handicap" defaultValue={toBoolSelect(etudiant.situation_handicap)} className={INPUT}>
+              <option value="">— Non renseigné</option>
+              <option value="true">Oui</option>
+              <option value="false">Non</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      {/* Formation & Contrat */}
+      <section className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+        <h2 className="text-sm font-semibold text-gray-700">Formation & Contrat</h2>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Formation visée</Label>
+            <select name="formation_id" defaultValue={etudiant.formation_id ?? ""} className={INPUT}>
+              <option value="">— Aucune</option>
+              {formations.map((f) => (
+                <option key={f.id} value={f.id}>{f.code} — {f.nom}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <Label>Type de contrat</Label>
+            <select name="type_contrat" defaultValue={etudiant.type_contrat ?? ""} className={INPUT}>
+              <option value="">— Non renseigné</option>
+              <option value="APPRENTISSAGE">Apprentissage</option>
+              <option value="PROFESSIONNALISATION">Professionnalisation</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Diplôme actuel</Label>
+            <input name="diplome_actuel" defaultValue={etudiant.diplome_actuel ?? ""} className={INPUT} />
+          </div>
+          <div>
+            <Label>Formation actuelle</Label>
+            <input name="formation_actuelle" defaultValue={etudiant.formation_actuelle ?? ""} className={INPUT} />
+          </div>
+        </div>
+
+        <div>
+          <Label>Spécialisation</Label>
+          <input name="specialisation" defaultValue={etudiant.specialisation ?? ""} className={INPUT} />
+        </div>
+      </section>
+
+      {/* Suivi commercial */}
+      <section className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+        <h2 className="text-sm font-semibold text-gray-700">Suivi commercial</h2>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Étape *</Label>
+            <select name="etape_process" defaultValue={etudiant.etape_process} className={INPUT}>
+              {(Object.keys(ETAPE_LABELS) as EtapeEtudiant[]).map((v) => (
+                <option key={v} value={v}>{ETAPE_LABELS[v]}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <Label>Statut *</Label>
+            <select name="statut" defaultValue={etudiant.statut} className={INPUT}>
+              {(Object.keys(STATUT_LABELS) as StatutEtudiant[]).map((v) => (
+                <option key={v} value={v}>{STATUT_LABELS[v]}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <Label>Niveau motivation (1-10)</Label>
+            <input
+              name="niveau_motivation"
+              type="number"
+              min={1}
+              max={10}
+              defaultValue={etudiant.niveau_motivation ?? ""}
+              className={INPUT}
+            />
+          </div>
+          <div>
+            <Label>Niveau test</Label>
+            <input name="niveau_test" defaultValue={etudiant.niveau_test ?? ""} className={INPUT} />
+          </div>
+          <div>
+            <Label>Niveau cours</Label>
+            <input name="niveau_cours" defaultValue={etudiant.niveau_cours ?? ""} className={INPUT} />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Origine contact</Label>
+            <select name="origine_contact" defaultValue={etudiant.origine_contact ?? ""} className={INPUT}>
+              <option value="">— Non renseigné</option>
+              <option value="SALON_ETUDIANT">Salon étudiant</option>
+              <option value="BOUCHE_A_OREILLE">Bouche à oreille</option>
+              <option value="JPO">JPO</option>
+              <option value="INSTAGRAM">Instagram</option>
+              <option value="GOOGLE">Google</option>
+              <option value="LINKEDIN">LinkedIn</option>
+              <option value="PARTENAIRE">Partenaire</option>
+              <option value="AUTRE">Autre</option>
+            </select>
+          </div>
+          <div>
+            <Label>Statut motivation</Label>
+            <input name="statut_motivation" defaultValue={etudiant.statut_motivation ?? ""} className={INPUT} />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Campagne</Label>
+            <input name="campagne" defaultValue={etudiant.campagne ?? ""} className={INPUT} />
+          </div>
+          <div>
+            <Label>Apporteur</Label>
+            <input name="apporteur_nom" defaultValue={etudiant.apporteur_nom ?? ""} className={INPUT} />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Premier contact</Label>
+            <input name="date_premier_contact" type="date" defaultValue={toDateInput(etudiant.date_premier_contact)} className={INPUT} />
+          </div>
+          <div>
+            <Label>Prochaine relance</Label>
+            <input name="date_prochaine_relance" type="date" defaultValue={toDateInput(etudiant.date_prochaine_relance)} className={INPUT} />
+          </div>
+        </div>
+
+        <div>
+          <Label>Note relance</Label>
+          <input name="note_prochaine_relance" defaultValue={etudiant.note_prochaine_relance ?? ""} className={INPUT} />
+        </div>
+      </section>
+
+      {/* Affectation */}
+      <section className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+        <h2 className="text-sm font-semibold text-gray-700">Affectation</h2>
+
+        <div>
+          <Label>Conseiller</Label>
+          <select name="conseiller_id" defaultValue={etudiant.conseiller_id ?? ""} className={INPUT}>
+            <option value="">— Non assigné</option>
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>{u.prenom} {u.nom}</option>
             ))}
           </select>
         </div>
+
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Étape</label>
-          <select
-            name="etape_process"
-            defaultValue={etudiant.etape_process}
-            className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
-          >
-            {(Object.keys(ETAPE_LABELS) as EtapeEtudiant[]).map((v) => (
-              <option key={v} value={v}>{ETAPE_LABELS[v]}</option>
+          <Label>Entreprise liée</Label>
+          <select name="entreprise_liee_id" defaultValue={etudiant.entreprise_liee_id ?? ""} className={INPUT}>
+            <option value="">— Aucune</option>
+            {entreprises.map((e) => (
+              <option key={e.id} value={e.id}>
+                {e.nom}{e.ville ? ` — ${e.ville}` : ""}
+              </option>
             ))}
           </select>
         </div>
-      </div>
+      </section>
 
-      <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1">Conseiller</label>
-        <select
-          name="conseiller_id"
-          defaultValue={etudiant.conseiller_id ?? ""}
-          className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
-        >
-          <option value="">— Non assigné</option>
-          {users.map((u) => (
-            <option key={u.id} value={u.id}>{u.prenom} {u.nom}</option>
-          ))}
-        </select>
-      </div>
+      {/* Divers */}
+      <section className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+        <h2 className="text-sm font-semibold text-gray-700">Divers</h2>
 
-      <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1">Entreprise liée</label>
-        <select
-          name="entreprise_liee_id"
-          defaultValue={etudiant.entreprise_liee_id ?? ""}
-          className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
-        >
-          <option value="">— Aucune</option>
-          {entreprises.map((e) => (
-            <option key={e.id} value={e.id}>
-              {e.nom}{e.ville ? ` — ${e.ville}` : ""}
-            </option>
-          ))}
-        </select>
-      </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Pack suivi alternance</Label>
+            <input name="pack_suivi_alternance" defaultValue={etudiant.pack_suivi_alternance ?? ""} className={INPUT} />
+          </div>
+          <div>
+            <Label>CV URL</Label>
+            <input name="cv_url" type="url" defaultValue={etudiant.cv_url ?? ""} className={INPUT} />
+          </div>
+        </div>
 
-      <div className="flex items-center gap-3 pt-2">
+        <div>
+          <Label>Commentaire</Label>
+          <textarea
+            name="commentaire"
+            rows={4}
+            defaultValue={etudiant.commentaire ?? ""}
+            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 resize-y"
+          />
+        </div>
+      </section>
+
+      <div className="flex items-center gap-3 pb-6">
         <button
           type="submit"
           disabled={isPending}

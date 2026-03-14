@@ -14,17 +14,40 @@ export default async function EditEtudiantPage({
     prisma.etudiant.findUnique({
       where: { id, deleted_at: null },
       select: {
-        id:                 true,
-        prenom:             true,
-        nom:                true,
-        email:              true,
-        telephone:          true,
-        ville:              true,
-        formation_id:       true,
-        statut:             true,
-        etape_process:      true,
-        conseiller_id:      true,
-        entreprise_liee_id: true,
+        id:                     true,
+        prenom:                 true,
+        nom:                    true,
+        email:                  true,
+        telephone:              true,
+        date_naissance:         true,
+        sexe:                   true,
+        adresse:                true,
+        ville:                  true,
+        permis:                 true,
+        vehicule:               true,
+        situation_handicap:     true,
+        formation_id:           true,
+        type_contrat:           true,
+        diplome_actuel:         true,
+        formation_actuelle:     true,
+        specialisation:         true,
+        etape_process:          true,
+        statut:                 true,
+        niveau_motivation:      true,
+        niveau_test:            true,
+        niveau_cours:           true,
+        origine_contact:        true,
+        statut_motivation:      true,
+        campagne:               true,
+        apporteur_nom:          true,
+        conseiller_id:          true,
+        entreprise_liee_id:     true,
+        date_premier_contact:   true,
+        date_prochaine_relance: true,
+        note_prochaine_relance: true,
+        pack_suivi_alternance:  true,
+        cv_url:                 true,
+        commentaire:            true,
       },
     }),
     prisma.formation.findMany({ orderBy: { code: "asc" } }),
@@ -39,7 +62,7 @@ export default async function EditEtudiantPage({
   if (!etudiant) notFound()
 
   return (
-    <div className="p-6 max-w-2xl">
+    <div className="p-6 max-w-3xl">
       <Link
         href={`/etudiants/${id}`}
         className="text-sm text-gray-500 hover:text-gray-800 mb-4 inline-block"
@@ -50,7 +73,12 @@ export default async function EditEtudiantPage({
         {etudiant.prenom} {etudiant.nom}
       </h1>
       <p className="text-sm text-gray-500 mb-6">Modifier les informations</p>
-      <EditEtudiantForm etudiant={etudiant} formations={formations} users={users} entreprises={entreprises} />
+      <EditEtudiantForm
+        etudiant={etudiant}
+        formations={formations}
+        users={users}
+        entreprises={entreprises}
+      />
     </div>
   )
 }

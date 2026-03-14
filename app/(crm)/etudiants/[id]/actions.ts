@@ -5,13 +5,26 @@ import { auth } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { z } from "zod"
-import { EtapeEtudiant, StatutEtudiant, TypeRDV, StatutRDV } from "@prisma/client"
+import {
+  EtapeEtudiant, StatutEtudiant,
+  TypeRDV, StatutRDV,
+  Sexe, TypeContrat, OrigineContact,
+} from "@prisma/client"
 
 type ActionState = { error: string | null; success?: boolean }
 
 function s(val: FormDataEntryValue | null): string | null {
   const v = (val as string ?? "").trim()
   return v || null
+}
+
+const bool = (v: string | null): boolean | null =>
+  v === "true" ? true : v === "false" ? false : null
+
+const toDate = (v: string | null): Date | null => {
+  if (!v) return null
+  const d = new Date(v)
+  return isNaN(d.getTime()) ? null : d
 }
 
 // ─── Changer statut / étape ───────────────────────────────────────────────────
@@ -49,20 +62,43 @@ export async function changerStatutEtudiant(
   return { error: null, success: true }
 }
 
-// ─── Modifier un étudiant ─────────────────────────────────────────────────────
+// ─── Modifier un étudiant (champs complets) ───────────────────────────────────
 
 const modifierEtudiantSchema = z.object({
-  etudiant_id:        z.string().min(1),
-  prenom:             z.string().min(1, "Prénom obligatoire").max(100),
-  nom:                z.string().min(1, "Nom obligatoire").max(100),
-  email:              z.string().email("Email invalide").optional(),
-  telephone:          z.string().max(30).optional(),
-  ville:              z.string().max(100).optional(),
-  formation_id:       z.string().optional(),
-  statut:             z.nativeEnum(StatutEtudiant),
-  etape_process:      z.nativeEnum(EtapeEtudiant),
-  conseiller_id:      z.string().optional(),
-  entreprise_liee_id: z.string().optional(),
+  etudiant_id:            z.string().min(1),
+  prenom:                 z.string().min(1, "Prénom obligatoire").max(100),
+  nom:                    z.string().min(1, "Nom obligatoire").max(100),
+  email:                  z.string().email("Email invalide").optional(),
+  telephone:              z.string().max(30).optional(),
+  date_naissance:         z.string().optional(),
+  sexe:                   z.preprocess(v => v || undefined, z.nativeEnum(Sexe).optional()),
+  adresse:                z.string().max(500).optional(),
+  ville:                  z.string().max(100).optional(),
+  permis:                 z.enum(["true", "false", ""]).optional(),
+  vehicule:               z.enum(["true", "false", ""]).optional(),
+  situation_handicap:     z.enum(["true", "false", ""]).optional(),
+  formation_id:           z.string().optional(),
+  type_contrat:           z.preprocess(v => v || undefined, z.nativeEnum(TypeContrat).optional()),
+  diplome_actuel:         z.string().max(200).optional(),
+  formation_actuelle:     z.string().max(200).optional(),
+  specialisation:         z.string().max(200).optional(),
+  etape_process:          z.nativeEnum(EtapeEtudiant),
+  statut:                 z.nativeEnum(StatutEtudiant),
+  niveau_motivation:      z.string().optional(),
+  niveau_test:            z.string().max(50).optional(),
+  niveau_cours:           z.string().max(50).optional(),
+  origine_contact:        z.preprocess(v => v || undefined, z.nativeEnum(OrigineContact).optional()),
+  statut_motivation:      z.string().max(100).optional(),
+  campagne:               z.string().max(100).optional(),
+  apporteur_nom:          z.string().max(100).optional(),
+  conseiller_id:          z.string().optional(),
+  entreprise_liee_id:     z.string().optional(),
+  date_premier_contact:   z.string().optional(),
+  date_prochaine_relance: z.string().optional(),
+  note_prochaine_relance: z.string().max(500).optional(),
+  pack_suivi_alternance:  z.string().max(200).optional(),
+  cv_url:                 z.string().max(500).optional(),
+  commentaire:            z.string().max(5000).optional(),
 })
 
 export async function modifierEtudiant(
@@ -75,21 +111,51 @@ export async function modifierEtudiant(
   const emailRaw = s(formData.get("email"))?.toLowerCase() ?? undefined
 
   const parsed = modifierEtudiantSchema.safeParse({
-    etudiant_id:        formData.get("etudiant_id"),
-    prenom:             s(formData.get("prenom")),
-    nom:                s(formData.get("nom")),
-    email:              emailRaw,
-    telephone:          s(formData.get("telephone")) ?? undefined,
-    ville:              s(formData.get("ville")) ?? undefined,
-    formation_id:       s(formData.get("formation_id")) ?? undefined,
-    statut:             formData.get("statut"),
-    etape_process:      formData.get("etape_process"),
-    conseiller_id:      s(formData.get("conseiller_id")) ?? undefined,
-    entreprise_liee_id: s(formData.get("entreprise_liee_id")) ?? undefined,
+    etudiant_id:            formData.get("etudiant_id"),
+    prenom:                 s(formData.get("prenom")),
+    nom:                    s(formData.get("nom")),
+    email:                  emailRaw,
+    telephone:              s(formData.get("telephone")) ?? undefined,
+    date_naissance:         s(formData.get("date_naissance")) ?? undefined,
+    sexe:                   s(formData.get("sexe")) ?? undefined,
+    adresse:                s(formData.get("adresse")) ?? undefined,
+    ville:                  s(formData.get("ville")) ?? undefined,
+    permis:                 formData.get("permis") as string,
+    vehicule:               formData.get("vehicule") as string,
+    situation_handicap:     formData.get("situation_handicap") as string,
+    formation_id:           s(formData.get("formation_id")) ?? undefined,
+    type_contrat:           s(formData.get("type_contrat")) ?? undefined,
+    diplome_actuel:         s(formData.get("diplome_actuel")) ?? undefined,
+    formation_actuelle:     s(formData.get("formation_actuelle")) ?? undefined,
+    specialisation:         s(formData.get("specialisation")) ?? undefined,
+    etape_process:          formData.get("etape_process"),
+    statut:                 formData.get("statut"),
+    niveau_motivation:      s(formData.get("niveau_motivation")) ?? undefined,
+    niveau_test:            s(formData.get("niveau_test")) ?? undefined,
+    niveau_cours:           s(formData.get("niveau_cours")) ?? undefined,
+    origine_contact:        s(formData.get("origine_contact")) ?? undefined,
+    statut_motivation:      s(formData.get("statut_motivation")) ?? undefined,
+    campagne:               s(formData.get("campagne")) ?? undefined,
+    apporteur_nom:          s(formData.get("apporteur_nom")) ?? undefined,
+    conseiller_id:          s(formData.get("conseiller_id")) ?? undefined,
+    entreprise_liee_id:     s(formData.get("entreprise_liee_id")) ?? undefined,
+    date_premier_contact:   s(formData.get("date_premier_contact")) ?? undefined,
+    date_prochaine_relance: s(formData.get("date_prochaine_relance")) ?? undefined,
+    note_prochaine_relance: s(formData.get("note_prochaine_relance")) ?? undefined,
+    pack_suivi_alternance:  s(formData.get("pack_suivi_alternance")) ?? undefined,
+    cv_url:                 s(formData.get("cv_url")) ?? undefined,
+    commentaire:            s(formData.get("commentaire")) ?? undefined,
   })
   if (!parsed.success) return { error: parsed.error.errors[0].message }
 
-  const { etudiant_id, email, formation_id, conseiller_id, entreprise_liee_id, ...rest } = parsed.data
+  const {
+    etudiant_id, email,
+    permis: permisStr, vehicule: vehiculeStr, situation_handicap: handicapStr,
+    formation_id, type_contrat, conseiller_id, entreprise_liee_id,
+    date_naissance, date_premier_contact, date_prochaine_relance,
+    niveau_motivation,
+    ...rest
+  } = parsed.data
 
   // Vérifier que l'étudiant existe
   const existing = await prisma.etudiant.findUnique({
@@ -98,7 +164,7 @@ export async function modifierEtudiant(
   })
   if (!existing) return { error: "Étudiant introuvable" }
 
-  // Doublon email (ignorer le même étudiant)
+  // Doublon email
   if (email) {
     const doublon = await prisma.etudiant.findFirst({
       where: { email, deleted_at: null, NOT: { id: etudiant_id } },
@@ -107,23 +173,39 @@ export async function modifierEtudiant(
     if (doublon) return { error: "Cet email est déjà utilisé par un autre étudiant" }
   }
 
-  // Vérifier l'entreprise liée
+  // Vérifications FK
+  if (formation_id) {
+    const f = await prisma.formation.findUnique({ where: { id: formation_id }, select: { id: true } })
+    if (!f) return { error: "Formation introuvable" }
+  }
+  if (conseiller_id) {
+    const c = await prisma.user.findUnique({ where: { id: conseiller_id }, select: { id: true } })
+    if (!c) return { error: "Conseiller introuvable" }
+  }
   if (entreprise_liee_id) {
-    const ent = await prisma.entreprise.findUnique({
+    const e = await prisma.entreprise.findUnique({
       where: { id: entreprise_liee_id, deleted_at: null },
       select: { id: true },
     })
-    if (!ent) return { error: "Entreprise liée introuvable" }
+    if (!e) return { error: "Entreprise liée introuvable" }
   }
 
   await prisma.etudiant.update({
     where: { id: etudiant_id },
     data: {
       ...rest,
-      email:              email ?? null,
-      formation_id:       formation_id ?? null,
-      conseiller_id:      conseiller_id ?? null,
-      entreprise_liee_id: entreprise_liee_id ?? null,
+      email:                  email ?? null,
+      permis:                 bool(permisStr ?? null),
+      vehicule:               bool(vehiculeStr ?? null),
+      situation_handicap:     bool(handicapStr ?? null),
+      formation_id:           formation_id ?? null,
+      type_contrat:           type_contrat ?? null,
+      conseiller_id:          conseiller_id ?? null,
+      entreprise_liee_id:     entreprise_liee_id ?? null,
+      date_naissance:         toDate(date_naissance ?? null),
+      date_premier_contact:   toDate(date_premier_contact ?? null),
+      date_prochaine_relance: toDate(date_prochaine_relance ?? null),
+      niveau_motivation:      niveau_motivation ? (parseInt(niveau_motivation, 10) || null) : null,
     },
   })
 
@@ -192,7 +274,6 @@ export async function creerRDV(
 
   const { etudiant_id, type, statut, date, notes } = parsed.data
 
-  // Numéro RDV = max existant + 1
   const lastRdv = await prisma.rendezVous.findFirst({
     where:   { etudiant_id },
     orderBy: { numero_rdv: "desc" },
@@ -206,8 +287,8 @@ export async function creerRDV(
       type,
       statut,
       numero_rdv,
-      date:  date ? new Date(date) : null,
-      notes: notes ?? null,
+      date:         date ? new Date(date) : null,
+      notes:        notes ?? null,
       animateur_id: session.user.id,
     },
   })
@@ -215,4 +296,78 @@ export async function creerRDV(
   revalidatePath(`/etudiants/${etudiant_id}`)
   revalidatePath("/dashboard")
   return { error: null, success: true }
+}
+
+// ─── Modifier un RDV ──────────────────────────────────────────────────────────
+
+const modifierRdvSchema = z.object({
+  rdv_id:      z.string().min(1),
+  etudiant_id: z.string().min(1),
+  type:        z.nativeEnum(TypeRDV),
+  statut:      z.nativeEnum(StatutRDV),
+  date:        z.string().optional(),
+  notes:       z.string().max(2000).optional(),
+})
+
+export async function modifierRDV(
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const session = await auth()
+  if (!session) return { error: "Non autorisé" }
+
+  const parsed = modifierRdvSchema.safeParse({
+    rdv_id:      formData.get("rdv_id"),
+    etudiant_id: formData.get("etudiant_id"),
+    type:        formData.get("type"),
+    statut:      formData.get("statut"),
+    date:        formData.get("date") || undefined,
+    notes:       s(formData.get("notes")) ?? undefined,
+  })
+  if (!parsed.success) return { error: parsed.error.errors[0].message }
+
+  const { rdv_id, etudiant_id, type, statut, date, notes } = parsed.data
+
+  const rdv = await prisma.rendezVous.findUnique({
+    where:  { id: rdv_id },
+    select: { id: true, etudiant_id: true },
+  })
+  if (!rdv) return { error: "RDV introuvable" }
+  if (rdv.etudiant_id !== etudiant_id) return { error: "RDV introuvable" }
+
+  await prisma.rendezVous.update({
+    where: { id: rdv_id },
+    data: {
+      type,
+      statut,
+      date:  date ? new Date(date) : null,
+      notes: notes ?? null,
+    },
+  })
+
+  revalidatePath(`/etudiants/${etudiant_id}`)
+  revalidatePath("/dashboard")
+  redirect(`/etudiants/${etudiant_id}`)
+}
+
+// ─── Supprimer un RDV ─────────────────────────────────────────────────────────
+
+export async function supprimerRDV(formData: FormData): Promise<void> {
+  const session = await auth()
+  if (!session) return
+
+  const rdvId      = formData.get("rdv_id") as string
+  const etudiantId = formData.get("etudiant_id") as string
+  if (!rdvId || !etudiantId) return
+
+  const rdv = await prisma.rendezVous.findUnique({
+    where:  { id: rdvId },
+    select: { id: true, etudiant_id: true },
+  })
+  if (!rdv || rdv.etudiant_id !== etudiantId) return
+
+  await prisma.rendezVous.delete({ where: { id: rdvId } })
+
+  revalidatePath(`/etudiants/${etudiantId}`)
+  revalidatePath("/dashboard")
 }
