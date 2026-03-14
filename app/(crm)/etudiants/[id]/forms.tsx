@@ -4,10 +4,11 @@ import { useActionState, useEffect, useRef, useTransition } from "react"
 import {
   changerStatutEtudiant, ajouterNoteEtudiant, creerRDV,
   modifierEtudiant, supprimerRDV,
+  creerHistoriqueAlternance, supprimerHistoriqueAlternance,
 } from "./actions"
 import {
   EtapeEtudiant, StatutEtudiant, TypeRDV, StatutRDV,
-  Sexe, TypeContrat, OrigineContact,
+  Sexe, TypeContrat, OrigineContact, StatutAlternance,
 } from "@prisma/client"
 
 type ActionState = { error: string | null; success?: boolean }
@@ -308,6 +309,9 @@ export function EditEtudiantForm({
     pack_suivi_alternance: string | null
     cv_url: string | null
     commentaire: string | null
+    date_entree_formation: Date | null
+    date_sortie_formation: Date | null
+    date_rentree_officielle: Date | null
   }
   formations: Formation[]
   users: User[]
@@ -570,6 +574,25 @@ export function EditEtudiantForm({
         </div>
       </section>
 
+      {/* Parcours formation */}
+      <section className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+        <h2 className="text-sm font-semibold text-gray-700">Parcours formation</h2>
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <Label>Date d&apos;entrée en formation</Label>
+            <input name="date_entree_formation" type="date" defaultValue={toDateInput(etudiant.date_entree_formation)} className={INPUT} />
+          </div>
+          <div>
+            <Label>Date de sortie</Label>
+            <input name="date_sortie_formation" type="date" defaultValue={toDateInput(etudiant.date_sortie_formation)} className={INPUT} />
+          </div>
+          <div>
+            <Label>Date rentrée officielle</Label>
+            <input name="date_rentree_officielle" type="date" defaultValue={toDateInput(etudiant.date_rentree_officielle)} className={INPUT} />
+          </div>
+        </div>
+      </section>
+
       {/* Divers */}
       <section className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
         <h2 className="text-sm font-semibold text-gray-700">Divers</h2>
@@ -606,5 +629,159 @@ export function EditEtudiantForm({
         </button>
       </div>
     </form>
+  )
+}
+
+// ─── Ajouter un contrat d'alternance ─────────────────────────────────────────
+
+type EntrepriseOption = { id: string; nom: string; ville: string | null }
+
+const STATUT_ALT_LABELS: Record<StatutAlternance, string> = {
+  EN_COURS: "En cours",
+  TERMINEE: "Terminée",
+  ROMPUE:   "Rompue",
+  ANNULEE:  "Annulée",
+}
+
+const TYPE_CONTRAT_LABELS: Record<TypeContrat, string> = {
+  APPRENTISSAGE:      "Apprentissage",
+  PROFESSIONNALISATION: "Professionnalisation",
+}
+
+export function AlternanceForm({
+  etudiantId,
+  entreprises,
+}: {
+  etudiantId: string
+  entreprises: EntrepriseOption[]
+}) {
+  const [state, formAction, isPending] = useActionState<ActionState, FormData>(
+    creerHistoriqueAlternance,
+    { error: null }
+  )
+  const formRef = useRef<HTMLFormElement>(null)
+
+  useEffect(() => {
+    if (state.success) formRef.current?.reset()
+  }, [state.success])
+
+  return (
+    <form ref={formRef} action={formAction} className="mt-4 border-t border-gray-100 pt-4 space-y-3">
+      <p className="text-xs font-medium text-gray-600 uppercase tracking-wide">Nouveau contrat</p>
+      <input type="hidden" name="etudiant_id" value={etudiantId} />
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">Entreprise (sélection)</label>
+          <select name="entreprise_id" className={INPUT}>
+            <option value="">— Aucune</option>
+            {entreprises.map((e) => (
+              <option key={e.id} value={e.id}>{e.nom}{e.ville ? ` — ${e.ville}` : ""}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">Ou nom libre</label>
+          <input name="nom_entreprise_libre" placeholder="Nom de l'entreprise…" className={INPUT} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">Type contrat</label>
+          <select name="type_contrat" className={INPUT}>
+            <option value="">— Non renseigné</option>
+            {(Object.keys(TYPE_CONTRAT_LABELS) as TypeContrat[]).map((v) => (
+              <option key={v} value={v}>{TYPE_CONTRAT_LABELS[v]}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">Poste</label>
+          <input name="poste" placeholder="Intitulé du poste…" className={INPUT} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-3">
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">Début contrat</label>
+          <input name="date_debut_contrat" type="date" className={INPUT} />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">Fin contrat</label>
+          <input name="date_fin_contrat" type="date" className={INPUT} />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">Statut</label>
+          <select name="statut" defaultValue="EN_COURS" className={INPUT}>
+            {(Object.keys(STATUT_ALT_LABELS) as StatutAlternance[]).map((v) => (
+              <option key={v} value={v}>{STATUT_ALT_LABELS[v]}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">Date rupture</label>
+          <input name="date_rupture" type="date" className={INPUT} />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">Motif rupture</label>
+          <input name="motif_rupture" placeholder="Motif…" className={INPUT} />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-xs text-gray-500 mb-1">Commentaire</label>
+        <textarea
+          name="commentaire"
+          rows={2}
+          placeholder="Observations…"
+          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 resize-none"
+        />
+      </div>
+
+      <div className="flex items-center gap-3">
+        <button
+          type="submit"
+          disabled={isPending}
+          className="bg-gray-900 text-white text-sm px-4 py-1.5 rounded-md hover:bg-gray-800 disabled:opacity-50 transition-colors"
+        >
+          {isPending ? "Enregistrement…" : "Ajouter le contrat"}
+        </button>
+        {state.success && <span className="text-sm text-green-600">Contrat ajouté</span>}
+        {state.error   && <span className="text-sm text-red-600">{state.error}</span>}
+      </div>
+    </form>
+  )
+}
+
+// ─── Supprimer un contrat ─────────────────────────────────────────────────────
+
+export function DeleteAlternanceButton({
+  alternanceId,
+  etudiantId,
+}: {
+  alternanceId: string
+  etudiantId: string
+}) {
+  const [isPending, startTransition] = useTransition()
+
+  return (
+    <button
+      type="button"
+      disabled={isPending}
+      onClick={() => {
+        if (!confirm("Supprimer ce contrat ?")) return
+        const fd = new FormData()
+        fd.append("alternance_id", alternanceId)
+        fd.append("etudiant_id", etudiantId)
+        startTransition(() => supprimerHistoriqueAlternance(fd))
+      }}
+      className="text-xs text-red-500 hover:text-red-700 disabled:opacity-50 transition-colors"
+    >
+      {isPending ? "…" : "Supprimer"}
+    </button>
   )
 }

@@ -106,6 +106,13 @@ enum StatutRDV {
   NO_SHOW
 }
 
+enum StatutAlternance {
+  EN_COURS
+  TERMINEE
+  ROMPUE
+  ANNULEE
+}
+
 enum TypeTache {
   RELANCE_TELEPHONE
   RELANCE_EMAIL
@@ -267,12 +274,16 @@ model Etudiant {
   entreprise_liee_id     String?
   entreprise_liee        Entreprise?     @relation("EtudiantEntrepriseLiee", fields: [entreprise_liee_id], references: [id])
 
-  date_premier_contact   DateTime?
-  date_prochaine_relance DateTime?
-  note_prochaine_relance String?
-  pack_suivi_alternance  String?
-  cv_url                 String?
-  commentaire            String?
+  date_premier_contact    DateTime?
+  date_prochaine_relance  DateTime?
+  note_prochaine_relance  String?
+  pack_suivi_alternance   String?
+  cv_url                  String?
+  commentaire             String?
+
+  date_entree_formation   DateTime?
+  date_sortie_formation   DateTime?
+  date_rentree_officielle DateTime?
 
   created_at             DateTime        @default(now())
   updated_at             DateTime        @updatedAt
@@ -284,6 +295,7 @@ model Etudiant {
   candidatures  Candidature[]
   notes         Note[]
   activity_logs ActivityLog[]
+  historique_alternances HistoriqueAlternance[]
 
   @@index([statut])
   @@index([etape_process])
@@ -331,6 +343,7 @@ model Entreprise {
   notes          Note[]
   activity_logs  ActivityLog[]
   etudiants_lies Etudiant[]        @relation("EtudiantEntrepriseLiee")
+  historique_alternances HistoriqueAlternance[]
 
   @@index([nom])
   @@index([ville])
@@ -526,4 +539,27 @@ model ActivityLog {
   @@index([entreprise_id])
   @@index([candidature_id])
   @@index([created_at])
+}
+
+model HistoriqueAlternance {
+  id                   String           @id @default(uuid())
+  etudiant_id          String
+  etudiant             Etudiant         @relation(fields: [etudiant_id], references: [id])
+  entreprise_id        String?
+  entreprise           Entreprise?      @relation(fields: [entreprise_id], references: [id])
+  nom_entreprise_libre String?
+  type_contrat         TypeContrat?
+  poste                String?
+  date_debut_contrat   DateTime?
+  date_fin_contrat     DateTime?
+  date_rupture         DateTime?
+  motif_rupture        String?
+  statut               StatutAlternance @default(EN_COURS)
+  commentaire          String?
+  created_at           DateTime         @default(now())
+  updated_at           DateTime         @updatedAt
+
+  @@index([etudiant_id])
+  @@index([entreprise_id])
+  @@index([statut])
 }

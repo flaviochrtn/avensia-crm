@@ -8,7 +8,7 @@ import { z } from "zod"
 import {
   EtapeEtudiant, StatutEtudiant,
   TypeRDV, StatutRDV,
-  Sexe, TypeContrat, OrigineContact,
+  Sexe, TypeContrat, OrigineContact, StatutAlternance,
 } from "@prisma/client"
 
 type ActionState = { error: string | null; success?: boolean }
@@ -96,6 +96,9 @@ const modifierEtudiantSchema = z.object({
   date_premier_contact:   z.string().optional(),
   date_prochaine_relance: z.string().optional(),
   note_prochaine_relance: z.string().max(500).optional(),
+  date_entree_formation:   z.string().optional(),
+  date_sortie_formation:   z.string().optional(),
+  date_rentree_officielle: z.string().optional(),
   pack_suivi_alternance:  z.string().max(200).optional(),
   cv_url:                 z.string().max(500).optional(),
   commentaire:            z.string().max(5000).optional(),
@@ -142,6 +145,9 @@ export async function modifierEtudiant(
     date_premier_contact:   s(formData.get("date_premier_contact")) ?? undefined,
     date_prochaine_relance: s(formData.get("date_prochaine_relance")) ?? undefined,
     note_prochaine_relance: s(formData.get("note_prochaine_relance")) ?? undefined,
+    date_entree_formation:   s(formData.get("date_entree_formation")) ?? undefined,
+    date_sortie_formation:   s(formData.get("date_sortie_formation")) ?? undefined,
+    date_rentree_officielle: s(formData.get("date_rentree_officielle")) ?? undefined,
     pack_suivi_alternance:  s(formData.get("pack_suivi_alternance")) ?? undefined,
     cv_url:                 s(formData.get("cv_url")) ?? undefined,
     commentaire:            s(formData.get("commentaire")) ?? undefined,
@@ -153,6 +159,7 @@ export async function modifierEtudiant(
     permis: permisStr, vehicule: vehiculeStr, situation_handicap: handicapStr,
     formation_id, type_contrat, conseiller_id, entreprise_liee_id,
     date_naissance, date_premier_contact, date_prochaine_relance,
+    date_entree_formation, date_sortie_formation, date_rentree_officielle,
     niveau_motivation,
     ...rest
   } = parsed.data
@@ -205,6 +212,9 @@ export async function modifierEtudiant(
       date_naissance:         toDate(date_naissance ?? null),
       date_premier_contact:   toDate(date_premier_contact ?? null),
       date_prochaine_relance: toDate(date_prochaine_relance ?? null),
+      date_entree_formation:   toDate(date_entree_formation ?? null),
+      date_sortie_formation:   toDate(date_sortie_formation ?? null),
+      date_rentree_officielle: toDate(date_rentree_officielle ?? null),
       niveau_motivation:      niveau_motivation ? (parseInt(niveau_motivation, 10) || null) : null,
     },
   })
@@ -370,4 +380,153 @@ export async function supprimerRDV(formData: FormData): Promise<void> {
 
   revalidatePath(`/etudiants/${etudiantId}`)
   revalidatePath("/dashboard")
+}
+
+// ─── CRUD Historique Alternance ───────────────────────────────────────────────
+
+const alternanceSchema = z.object({
+  etudiant_id:          z.string().min(1),
+  entreprise_id:        z.string().optional(),
+  nom_entreprise_libre: z.string().max(200).optional(),
+  type_contrat:         z.preprocess(v => v || undefined, z.nativeEnum(TypeContrat).optional()),
+  poste:                z.string().max(200).optional(),
+  date_debut_contrat:   z.string().optional(),
+  date_fin_contrat:     z.string().optional(),
+  date_rupture:         z.string().optional(),
+  motif_rupture:        z.string().max(500).optional(),
+  statut:               z.nativeEnum(StatutAlternance),
+  commentaire:          z.string().max(2000).optional(),
+})
+
+function parseAlternanceFormData(formData: FormData) {
+  return alternanceSchema.safeParse({
+    etudiant_id:          formData.get("etudiant_id"),
+    entreprise_id:        s(formData.get("entreprise_id")) ?? undefined,
+    nom_entreprise_libre: s(formData.get("nom_entreprise_libre")) ?? undefined,
+    type_contrat:         s(formData.get("type_contrat")) ?? undefined,
+    poste:                s(formData.get("poste")) ?? undefined,
+    date_debut_contrat:   s(formData.get("date_debut_contrat")) ?? undefined,
+    date_fin_contrat:     s(formData.get("date_fin_contrat")) ?? undefined,
+    date_rupture:         s(formData.get("date_rupture")) ?? undefined,
+    motif_rupture:        s(formData.get("motif_rupture")) ?? undefined,
+    statut:               formData.get("statut") ?? "EN_COURS",
+    commentaire:          s(formData.get("commentaire")) ?? undefined,
+  })
+}
+
+export async function creerHistoriqueAlternance(
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const session = await auth()
+  if (!session) return { error: "Non autorisé" }
+
+  const parsed = parseAlternanceFormData(formData)
+  if (!parsed.success) return { error: parsed.error.errors[0].message }
+
+  const { etudiant_id, entreprise_id, nom_entreprise_libre, type_contrat, poste,
+          date_debut_contrat, date_fin_contrat, date_rupture, motif_rupture,
+          statut, commentaire } = parsed.data
+
+  if (!entreprise_id && !nom_entreprise_libre) {
+    return { error: "Renseignez l'entreprise ou son nom libre" }
+  }
+
+  if (entreprise_id) {
+    const e = await prisma.entreprise.findUnique({ where: { id: entreprise_id, deleted_at: null }, select: { id: true } })
+    if (!e) return { error: "Entreprise introuvable" }
+  }
+
+  await prisma.historiqueAlternance.create({
+    data: {
+      etudiant_id,
+      entreprise_id:        entreprise_id ?? null,
+      nom_entreprise_libre: nom_entreprise_libre ?? null,
+      type_contrat:         type_contrat ?? null,
+      poste:                poste ?? null,
+      date_debut_contrat:   toDate(date_debut_contrat ?? null),
+      date_fin_contrat:     toDate(date_fin_contrat ?? null),
+      date_rupture:         toDate(date_rupture ?? null),
+      motif_rupture:        motif_rupture ?? null,
+      statut,
+      commentaire:          commentaire ?? null,
+    },
+  })
+
+  revalidatePath(`/etudiants/${etudiant_id}`)
+  revalidatePath("/etudiants")
+  return { error: null, success: true }
+}
+
+export async function modifierHistoriqueAlternance(
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const session = await auth()
+  if (!session) return { error: "Non autorisé" }
+
+  const alternanceId = formData.get("alternance_id") as string
+  if (!alternanceId) return { error: "ID manquant" }
+
+  const parsed = parseAlternanceFormData(formData)
+  if (!parsed.success) return { error: parsed.error.errors[0].message }
+
+  const { etudiant_id, entreprise_id, nom_entreprise_libre, type_contrat, poste,
+          date_debut_contrat, date_fin_contrat, date_rupture, motif_rupture,
+          statut, commentaire } = parsed.data
+
+  if (!entreprise_id && !nom_entreprise_libre) {
+    return { error: "Renseignez l'entreprise ou son nom libre" }
+  }
+
+  const existing = await prisma.historiqueAlternance.findUnique({
+    where:  { id: alternanceId },
+    select: { id: true, etudiant_id: true },
+  })
+  if (!existing || existing.etudiant_id !== etudiant_id) return { error: "Contrat introuvable" }
+
+  if (entreprise_id) {
+    const e = await prisma.entreprise.findUnique({ where: { id: entreprise_id, deleted_at: null }, select: { id: true } })
+    if (!e) return { error: "Entreprise introuvable" }
+  }
+
+  await prisma.historiqueAlternance.update({
+    where: { id: alternanceId },
+    data: {
+      entreprise_id:        entreprise_id ?? null,
+      nom_entreprise_libre: nom_entreprise_libre ?? null,
+      type_contrat:         type_contrat ?? null,
+      poste:                poste ?? null,
+      date_debut_contrat:   toDate(date_debut_contrat ?? null),
+      date_fin_contrat:     toDate(date_fin_contrat ?? null),
+      date_rupture:         toDate(date_rupture ?? null),
+      motif_rupture:        motif_rupture ?? null,
+      statut,
+      commentaire:          commentaire ?? null,
+    },
+  })
+
+  revalidatePath(`/etudiants/${etudiant_id}`)
+  revalidatePath("/etudiants")
+  redirect(`/etudiants/${etudiant_id}`)
+}
+
+export async function supprimerHistoriqueAlternance(formData: FormData): Promise<void> {
+  const session = await auth()
+  if (!session) return
+
+  const alternanceId = formData.get("alternance_id") as string
+  const etudiantId   = formData.get("etudiant_id") as string
+  if (!alternanceId || !etudiantId) return
+
+  const existing = await prisma.historiqueAlternance.findUnique({
+    where:  { id: alternanceId },
+    select: { id: true, etudiant_id: true },
+  })
+  if (!existing || existing.etudiant_id !== etudiantId) return
+
+  await prisma.historiqueAlternance.delete({ where: { id: alternanceId } })
+
+  revalidatePath(`/etudiants/${etudiantId}`)
+  revalidatePath("/etudiants")
 }

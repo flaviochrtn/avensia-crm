@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { EtapeEtudiant, StatutEtudiant, StatutRDV, TypeRDV } from "@prisma/client"
-import { StatutForm, NoteEtudiantForm, RDVForm, DeleteRdvButton } from "./forms"
+import { StatutForm, NoteEtudiantForm, RDVForm, DeleteRdvButton, AlternanceForm, DeleteAlternanceButton } from "./forms"
 
 const ETAPE_LABELS: Record<EtapeEtudiant, string> = {
   NOUVEAU:           "Nouveau",
@@ -65,20 +65,31 @@ export default async function EtudiantDetailPage({
 }) {
   const { id } = await params
 
-  const etudiant = await prisma.etudiant.findUnique({
-    where: { id, deleted_at: null },
-    include: {
-      formation:       true,
-      conseiller:      { select: { prenom: true, nom: true, email: true } },
-      entreprise_liee: { select: { id: true, nom: true, ville: true } },
-      rdvs:            { orderBy: { numero_rdv: "asc" } },
-      notes: {
-        orderBy: { created_at: "desc" },
-        take: 10,
-        include: { auteur: { select: { prenom: true, nom: true } } },
+  const [etudiant, entreprises] = await Promise.all([
+    prisma.etudiant.findUnique({
+      where: { id, deleted_at: null },
+      include: {
+        formation:       true,
+        conseiller:      { select: { prenom: true, nom: true, email: true } },
+        entreprise_liee: { select: { id: true, nom: true, ville: true } },
+        rdvs:            { orderBy: { numero_rdv: "asc" } },
+        notes: {
+          orderBy: { created_at: "desc" },
+          take: 10,
+          include: { auteur: { select: { prenom: true, nom: true } } },
+        },
+        historique_alternances: {
+          orderBy: { created_at: "desc" },
+          include: { entreprise: { select: { id: true, nom: true } } },
+        },
       },
-    },
-  })
+    }),
+    prisma.entreprise.findMany({
+      where:   { deleted_at: null },
+      select:  { id: true, nom: true, ville: true },
+      orderBy: [{ nom: "asc" }],
+    }),
+  ])
 
   if (!etudiant) notFound()
 
@@ -205,6 +216,52 @@ export default async function EtudiantDetailPage({
           )}
         </section>
 
+        {/* Parcours formation */}
+        <section className="bg-white border border-gray-200 rounded-lg p-5">
+          <h2 className="text-sm font-semibold text-gray-700 mb-4">Parcours formation</h2>
+          <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <Field
+              label="Entrée en formation"
+              value={
+                etudiant.date_entree_formation
+                  ? new Date(etudiant.date_entree_formation).toLocaleDateString("fr-FR")
+                  : null
+              }
+            />
+            <Field
+              label="Sortie de formation"
+              value={
+                etudiant.date_sortie_formation
+                  ? new Date(etudiant.date_sortie_formation).toLocaleDateString("fr-FR")
+                  : null
+              }
+            />
+            <Field
+              label="Rentrée officielle"
+              value={
+                etudiant.date_rentree_officielle
+                  ? new Date(etudiant.date_rentree_officielle).toLocaleDateString("fr-FR")
+                  : null
+              }
+            />
+            {(() => {
+              if (!etudiant.date_entree_formation || !etudiant.date_rentree_officielle) return null
+              const diff = Math.abs(
+                new Date(etudiant.date_entree_formation).getTime() -
+                new Date(etudiant.date_rentree_officielle).getTime()
+              )
+              const days = diff / (1000 * 60 * 60 * 24)
+              const label = days <= 14 ? "Entrée à la rentrée" : "Entrée en cours d'année"
+              return (
+                <div className="col-span-2 sm:col-span-3">
+                  <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">Type d&apos;entrée</dt>
+                  <dd className="mt-0.5 text-sm text-gray-900">{label}</dd>
+                </div>
+              )
+            })()}
+          </dl>
+        </section>
+
         {/* RDVs */}
         <section className="bg-white border border-gray-200 rounded-lg p-5">
           <h2 className="text-sm font-semibold text-gray-700 mb-4">
@@ -252,6 +309,65 @@ export default async function EtudiantDetailPage({
             </div>
           )}
           <RDVForm etudiantId={etudiant.id} />
+        </section>
+
+        {/* Historique d'alternance */}
+        <section className="bg-white border border-gray-200 rounded-lg p-5">
+          <h2 className="text-sm font-semibold text-gray-700 mb-4">
+            Historique d&apos;alternance {etudiant.historique_alternances.length > 0 && `(${etudiant.historique_alternances.length})`}
+          </h2>
+          {etudiant.historique_alternances.length > 0 && (
+            <div className="divide-y divide-gray-100 mb-2">
+              {etudiant.historique_alternances.map((alt) => (
+                <div key={alt.id} className="py-3 first:pt-0">
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">
+                        {alt.entreprise?.nom ?? alt.nom_entreprise_libre ?? "—"}
+                      </p>
+                      {alt.poste && <p className="text-xs text-gray-500">{alt.poste}</p>}
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className={`text-xs px-2 py-0.5 rounded ${
+                        alt.statut === "EN_COURS" ? "bg-green-100 text-green-700" :
+                        alt.statut === "TERMINEE" ? "bg-blue-100 text-blue-700" :
+                        alt.statut === "ROMPUE"   ? "bg-red-100 text-red-600" :
+                        "bg-gray-100 text-gray-500"
+                      }`}>
+                        {alt.statut === "EN_COURS" ? "En cours" :
+                         alt.statut === "TERMINEE" ? "Terminée" :
+                         alt.statut === "ROMPUE"   ? "Rompue" : "Annulée"}
+                      </span>
+                      <Link
+                        href={`/etudiants/${etudiant.id}/alternances/${alt.id}/edit`}
+                        className="text-xs text-gray-500 hover:text-gray-800 transition-colors"
+                      >
+                        Modifier
+                      </Link>
+                      <DeleteAlternanceButton alternanceId={alt.id} etudiantId={etudiant.id} />
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 flex flex-wrap gap-3">
+                    {alt.type_contrat && <span>{alt.type_contrat === "APPRENTISSAGE" ? "Apprentissage" : "Professionnalisation"}</span>}
+                    {alt.date_debut_contrat && (
+                      <span>Début : {new Date(alt.date_debut_contrat).toLocaleDateString("fr-FR")}</span>
+                    )}
+                    {alt.date_fin_contrat && (
+                      <span>Fin : {new Date(alt.date_fin_contrat).toLocaleDateString("fr-FR")}</span>
+                    )}
+                    {alt.date_rupture && (
+                      <span className="text-red-500">Rupture : {new Date(alt.date_rupture).toLocaleDateString("fr-FR")}</span>
+                    )}
+                    {alt.motif_rupture && <span>Motif : {alt.motif_rupture}</span>}
+                  </div>
+                  {alt.commentaire && (
+                    <p className="text-xs text-gray-600 italic mt-1">{alt.commentaire}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+          <AlternanceForm etudiantId={etudiant.id} entreprises={entreprises} />
         </section>
 
         {/* Notes */}
