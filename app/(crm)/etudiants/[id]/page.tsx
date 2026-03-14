@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { EtapeEtudiant, StatutEtudiant, StatutRDV, TypeRDV } from "@prisma/client"
+import { StatutForm, NoteEtudiantForm, RDVForm } from "./forms"
 
 const ETAPE_LABELS: Record<EtapeEtudiant, string> = {
   NOUVEAU:           "Nouveau",
@@ -93,22 +94,21 @@ export default async function EtudiantDetailPage({
 
       {/* En-tête */}
       <div className="mb-6">
-        <h1 className="text-xl font-semibold text-gray-900">
-          {etudiant.prenom} {etudiant.nom}
-        </h1>
-        <div className="flex gap-2 mt-1 flex-wrap">
-          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
-            {ETAPE_LABELS[etudiant.etape_process]}
-          </span>
-          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-            {STATUT_LABELS[etudiant.statut]}
-          </span>
+        <div className="flex items-start gap-3 flex-wrap">
+          <h1 className="text-xl font-semibold text-gray-900">
+            {etudiant.prenom} {etudiant.nom}
+          </h1>
           {etudiant.formation && (
-            <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
+            <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded self-center">
               {etudiant.formation.code}
             </span>
           )}
         </div>
+        <StatutForm
+          etudiantId={etudiant.id}
+          statut={etudiant.statut}
+          etape={etudiant.etape_process}
+        />
       </div>
 
       <div className="space-y-5">
@@ -198,11 +198,11 @@ export default async function EtudiantDetailPage({
         </section>
 
         {/* RDVs */}
-        {etudiant.rdvs.length > 0 && (
-          <section className="bg-white border border-gray-200 rounded-lg p-5">
-            <h2 className="text-sm font-semibold text-gray-700 mb-4">
-              Rendez-vous ({etudiant.rdvs.length})
-            </h2>
+        <section className="bg-white border border-gray-200 rounded-lg p-5">
+          <h2 className="text-sm font-semibold text-gray-700 mb-4">
+            Rendez-vous {etudiant.rdvs.length > 0 && `(${etudiant.rdvs.length})`}
+          </h2>
+          {etudiant.rdvs.length > 0 && (
             <div className="divide-y divide-gray-100">
               {etudiant.rdvs.map((rdv) => (
                 <div key={rdv.id} className="py-3 first:pt-0 last:pb-0">
@@ -231,18 +231,19 @@ export default async function EtudiantDetailPage({
                 </div>
               ))}
             </div>
-          </section>
-        )}
+          )}
+          <RDVForm etudiantId={etudiant.id} />
+        </section>
 
         {/* Notes */}
-        {etudiant.notes.length > 0 && (
-          <section className="bg-white border border-gray-200 rounded-lg p-5">
-            <h2 className="text-sm font-semibold text-gray-700 mb-4">
-              Notes ({etudiant.notes.length})
-            </h2>
-            <div className="divide-y divide-gray-100">
+        <section className="bg-white border border-gray-200 rounded-lg p-5">
+          <h2 className="text-sm font-semibold text-gray-700 mb-4">
+            Notes {etudiant.notes.length > 0 && `(${etudiant.notes.length})`}
+          </h2>
+          {etudiant.notes.length > 0 && (
+            <div className="divide-y divide-gray-100 mb-2">
               {etudiant.notes.map((note) => (
-                <div key={note.id} className="py-3 first:pt-0 last:pb-0">
+                <div key={note.id} className="py-3 first:pt-0">
                   <p className="text-sm text-gray-800 whitespace-pre-line">{note.contenu}</p>
                   <p className="text-xs text-gray-400 mt-1">
                     {note.auteur ? `${note.auteur.prenom} ${note.auteur.nom} · ` : ""}
@@ -251,8 +252,9 @@ export default async function EtudiantDetailPage({
                 </div>
               ))}
             </div>
-          </section>
-        )}
+          )}
+          <NoteEtudiantForm etudiantId={etudiant.id} />
+        </section>
       </div>
     </div>
   )

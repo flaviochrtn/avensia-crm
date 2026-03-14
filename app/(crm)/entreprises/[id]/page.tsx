@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { StatutEntreprise, StatutEtudiant } from "@prisma/client"
+import { ResponsableForm, NoteEntrepriseForm } from "./forms"
 
 const STATUT_LABELS: Record<StatutEntreprise, string> = {
   NOUVEAU:          "Nouveau",
@@ -52,7 +53,8 @@ export default async function EntrepriseDetailPage({
 }) {
   const { id } = await params
 
-  const entreprise = await prisma.entreprise.findUnique({
+  const [entreprise, users] = await Promise.all([
+    prisma.entreprise.findUnique({
     where: { id, deleted_at: null },
     include: {
       responsable:    { select: { prenom: true, nom: true, email: true } },
@@ -68,7 +70,9 @@ export default async function EntrepriseDetailPage({
         include: { auteur: { select: { prenom: true, nom: true } } },
       },
     },
-  })
+  }),
+    prisma.user.findMany({ select: { id: true, prenom: true, nom: true }, orderBy: { nom: "asc" } }),
+  ])
 
   if (!entreprise) notFound()
 
@@ -88,7 +92,7 @@ export default async function EntrepriseDetailPage({
           {entreprise.ville && (
             <span className="text-xs text-gray-500">{entreprise.ville}</span>
           )}
-          {!entreprise.responsable && (
+          {!entreprise.responsable_id && (
             <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-medium">
               Sans responsable
             </span>
@@ -127,14 +131,14 @@ export default async function EntrepriseDetailPage({
         <section className="bg-white border border-gray-200 rounded-lg p-5">
           <h2 className="text-sm font-semibold text-gray-700 mb-4">Suivi commercial</h2>
           <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            <Field
-              label="Responsable"
-              value={
-                entreprise.responsable
-                  ? `${entreprise.responsable.prenom} ${entreprise.responsable.nom}`
-                  : <span className="text-orange-600 font-medium">Non assigné</span>
-              }
-            />
+            <div className="col-span-2 sm:col-span-3">
+              <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">Responsable</dt>
+              <ResponsableForm
+                entrepriseId={entreprise.id}
+                responsableId={entreprise.responsable_id}
+                users={users}
+              />
+            </div>
             <Field
               label="Besoin alternant"
               value={
@@ -235,14 +239,14 @@ export default async function EntrepriseDetailPage({
         )}
 
         {/* Notes */}
-        {entreprise.notes.length > 0 && (
-          <section className="bg-white border border-gray-200 rounded-lg p-5">
-            <h2 className="text-sm font-semibold text-gray-700 mb-4">
-              Notes ({entreprise.notes.length})
-            </h2>
-            <div className="divide-y divide-gray-100">
+        <section className="bg-white border border-gray-200 rounded-lg p-5">
+          <h2 className="text-sm font-semibold text-gray-700 mb-4">
+            Notes {entreprise.notes.length > 0 && `(${entreprise.notes.length})`}
+          </h2>
+          {entreprise.notes.length > 0 && (
+            <div className="divide-y divide-gray-100 mb-2">
               {entreprise.notes.map((note) => (
-                <div key={note.id} className="py-3 first:pt-0 last:pb-0">
+                <div key={note.id} className="py-3 first:pt-0">
                   <p className="text-sm text-gray-800 whitespace-pre-line">{note.contenu}</p>
                   <p className="text-xs text-gray-400 mt-1">
                     {note.auteur ? `${note.auteur.prenom} ${note.auteur.nom} · ` : ""}
@@ -251,8 +255,9 @@ export default async function EntrepriseDetailPage({
                 </div>
               ))}
             </div>
-          </section>
-        )}
+          )}
+          <NoteEntrepriseForm entrepriseId={entreprise.id} />
+        </section>
       </div>
     </div>
   )
