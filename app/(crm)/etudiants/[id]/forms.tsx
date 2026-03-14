@@ -224,13 +224,15 @@ export function RDVForm({ etudiantId }: { etudiantId: string }) {
 
 // ─── Éditer un étudiant ───────────────────────────────────────────────────────
 
-type Formation = { id: string; code: string; nom: string }
-type User      = { id: string; prenom: string; nom: string }
+type Formation  = { id: string; code: string; nom: string }
+type User       = { id: string; prenom: string; nom: string }
+type Entreprise = { id: string; nom: string; ville: string | null }
 
 export function EditEtudiantForm({
   etudiant,
   formations,
   users,
+  entreprises,
 }: {
   etudiant: {
     id: string
@@ -243,9 +245,11 @@ export function EditEtudiantForm({
     statut: StatutEtudiant
     etape_process: EtapeEtudiant
     conseiller_id: string | null
+    entreprise_liee_id: string | null
   }
   formations: Formation[]
   users: User[]
+  entreprises: Entreprise[]
 }) {
   const [state, formAction, isPending] = useActionState<ActionState, FormData>(
     modifierEtudiant,
@@ -364,6 +368,22 @@ export function EditEtudiantForm({
           <option value="">— Non assigné</option>
           {users.map((u) => (
             <option key={u.id} value={u.id}>{u.prenom} {u.nom}</option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-xs font-medium text-gray-600 mb-1">Entreprise liée</label>
+        <select
+          name="entreprise_liee_id"
+          defaultValue={etudiant.entreprise_liee_id ?? ""}
+          className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+        >
+          <option value="">— Aucune</option>
+          {entreprises.map((e) => (
+            <option key={e.id} value={e.id}>
+              {e.nom}{e.ville ? ` — ${e.ville}` : ""}
+            </option>
           ))}
         </select>
       </div>

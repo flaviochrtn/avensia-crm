@@ -5,8 +5,9 @@ import { creerEtudiant } from "../actions"
 import { EtapeEtudiant, StatutEtudiant } from "@prisma/client"
 import Link from "next/link"
 
-type Formation = { id: string; code: string; nom: string }
-type User      = { id: string; prenom: string; nom: string }
+type Formation  = { id: string; code: string; nom: string }
+type User       = { id: string; prenom: string; nom: string }
+type Entreprise = { id: string; nom: string; ville: string | null }
 type ActionState = { error: string | null }
 
 const STATUT_LABELS: Record<StatutEtudiant, string> = {
@@ -34,9 +35,11 @@ const ETAPE_LABELS: Record<EtapeEtudiant, string> = {
 export function CreateEtudiantForm({
   formations,
   users,
+  entreprises,
 }: {
   formations: Formation[]
   users: User[]
+  entreprises: Entreprise[]
 }) {
   const [state, formAction, isPending] = useActionState<ActionState, FormData>(
     creerEtudiant,
@@ -146,6 +149,21 @@ export function CreateEtudiantForm({
           <option value="">— Non assigné</option>
           {users.map((u) => (
             <option key={u.id} value={u.id}>{u.prenom} {u.nom}</option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-xs font-medium text-gray-600 mb-1">Entreprise liée</label>
+        <select
+          name="entreprise_liee_id"
+          className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+        >
+          <option value="">— Aucune</option>
+          {entreprises.map((e) => (
+            <option key={e.id} value={e.id}>
+              {e.nom}{e.ville ? ` — ${e.ville}` : ""}
+            </option>
           ))}
         </select>
       </div>

@@ -52,16 +52,17 @@ export async function changerStatutEtudiant(
 // ─── Modifier un étudiant ─────────────────────────────────────────────────────
 
 const modifierEtudiantSchema = z.object({
-  etudiant_id:   z.string().min(1),
-  prenom:        z.string().min(1, "Prénom obligatoire").max(100),
-  nom:           z.string().min(1, "Nom obligatoire").max(100),
-  email:         z.string().email("Email invalide").optional(),
-  telephone:     z.string().max(30).optional(),
-  ville:         z.string().max(100).optional(),
-  formation_id:  z.string().optional(),
-  statut:        z.nativeEnum(StatutEtudiant),
-  etape_process: z.nativeEnum(EtapeEtudiant),
-  conseiller_id: z.string().optional(),
+  etudiant_id:        z.string().min(1),
+  prenom:             z.string().min(1, "Prénom obligatoire").max(100),
+  nom:                z.string().min(1, "Nom obligatoire").max(100),
+  email:              z.string().email("Email invalide").optional(),
+  telephone:          z.string().max(30).optional(),
+  ville:              z.string().max(100).optional(),
+  formation_id:       z.string().optional(),
+  statut:             z.nativeEnum(StatutEtudiant),
+  etape_process:      z.nativeEnum(EtapeEtudiant),
+  conseiller_id:      z.string().optional(),
+  entreprise_liee_id: z.string().optional(),
 })
 
 export async function modifierEtudiant(
@@ -74,20 +75,21 @@ export async function modifierEtudiant(
   const emailRaw = s(formData.get("email"))?.toLowerCase() ?? undefined
 
   const parsed = modifierEtudiantSchema.safeParse({
-    etudiant_id:   formData.get("etudiant_id"),
-    prenom:        s(formData.get("prenom")),
-    nom:           s(formData.get("nom")),
-    email:         emailRaw,
-    telephone:     s(formData.get("telephone")) ?? undefined,
-    ville:         s(formData.get("ville")) ?? undefined,
-    formation_id:  s(formData.get("formation_id")) ?? undefined,
-    statut:        formData.get("statut"),
-    etape_process: formData.get("etape_process"),
-    conseiller_id: s(formData.get("conseiller_id")) ?? undefined,
+    etudiant_id:        formData.get("etudiant_id"),
+    prenom:             s(formData.get("prenom")),
+    nom:                s(formData.get("nom")),
+    email:              emailRaw,
+    telephone:          s(formData.get("telephone")) ?? undefined,
+    ville:              s(formData.get("ville")) ?? undefined,
+    formation_id:       s(formData.get("formation_id")) ?? undefined,
+    statut:             formData.get("statut"),
+    etape_process:      formData.get("etape_process"),
+    conseiller_id:      s(formData.get("conseiller_id")) ?? undefined,
+    entreprise_liee_id: s(formData.get("entreprise_liee_id")) ?? undefined,
   })
   if (!parsed.success) return { error: parsed.error.errors[0].message }
 
-  const { etudiant_id, email, formation_id, conseiller_id, ...rest } = parsed.data
+  const { etudiant_id, email, formation_id, conseiller_id, entreprise_liee_id, ...rest } = parsed.data
 
   // Vérifier que l'étudiant existe
   const existing = await prisma.etudiant.findUnique({
@@ -105,13 +107,23 @@ export async function modifierEtudiant(
     if (doublon) return { error: "Cet email est déjà utilisé par un autre étudiant" }
   }
 
+  // Vérifier l'entreprise liée
+  if (entreprise_liee_id) {
+    const ent = await prisma.entreprise.findUnique({
+      where: { id: entreprise_liee_id, deleted_at: null },
+      select: { id: true },
+    })
+    if (!ent) return { error: "Entreprise liée introuvable" }
+  }
+
   await prisma.etudiant.update({
     where: { id: etudiant_id },
     data: {
       ...rest,
-      email:         email ?? null,
-      formation_id:  formation_id ?? null,
-      conseiller_id: conseiller_id ?? null,
+      email:              email ?? null,
+      formation_id:       formation_id ?? null,
+      conseiller_id:      conseiller_id ?? null,
+      entreprise_liee_id: entreprise_liee_id ?? null,
     },
   })
 

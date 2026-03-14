@@ -10,24 +10,30 @@ export default async function EditEtudiantPage({
 }) {
   const { id } = await params
 
-  const [etudiant, formations, users] = await Promise.all([
+  const [etudiant, formations, users, entreprises] = await Promise.all([
     prisma.etudiant.findUnique({
       where: { id, deleted_at: null },
       select: {
-        id:            true,
-        prenom:        true,
-        nom:           true,
-        email:         true,
-        telephone:     true,
-        ville:         true,
-        formation_id:  true,
-        statut:        true,
-        etape_process: true,
-        conseiller_id: true,
+        id:                 true,
+        prenom:             true,
+        nom:                true,
+        email:              true,
+        telephone:          true,
+        ville:              true,
+        formation_id:       true,
+        statut:             true,
+        etape_process:      true,
+        conseiller_id:      true,
+        entreprise_liee_id: true,
       },
     }),
     prisma.formation.findMany({ orderBy: { code: "asc" } }),
     prisma.user.findMany({ select: { id: true, prenom: true, nom: true }, orderBy: { nom: "asc" } }),
+    prisma.entreprise.findMany({
+      where:   { deleted_at: null },
+      select:  { id: true, nom: true, ville: true },
+      orderBy: [{ nom: "asc" }, { ville: "asc" }],
+    }),
   ])
 
   if (!etudiant) notFound()
@@ -44,7 +50,7 @@ export default async function EditEtudiantPage({
         {etudiant.prenom} {etudiant.nom}
       </h1>
       <p className="text-sm text-gray-500 mb-6">Modifier les informations</p>
-      <EditEtudiantForm etudiant={etudiant} formations={formations} users={users} />
+      <EditEtudiantForm etudiant={etudiant} formations={formations} users={users} entreprises={entreprises} />
     </div>
   )
 }
