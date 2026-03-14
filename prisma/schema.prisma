@@ -1,0 +1,528 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+}
+
+// ─── ENUMS ────────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  ADMIN
+  DIRECTION
+  COMMERCIAL
+  ADMINISTRATIF
+}
+
+enum EtapeEtudiant {
+  NOUVEAU
+  CONTACTE
+  RDV0_PLANIFIE
+  RDV0_FAIT
+  RDV1_PLANIFIE
+  RDV1_FAIT
+  RDV2_PLANIFIE
+  RDV2_FAIT
+  DOSSIER_EN_COURS
+  INSCRIT
+}
+
+enum StatutEtudiant {
+  EN_COURS
+  INSCRIT_EN_RECHERCHE
+  INSCRIT_ALTERNANCE
+  ABANDON
+  NON_RETENU
+  INVALIDE
+}
+
+enum TypeContrat {
+  APPRENTISSAGE
+  PROFESSIONNALISATION
+}
+
+enum OrigineContact {
+  SALON_ETUDIANT
+  BOUCHE_A_OREILLE
+  JPO
+  INSTAGRAM
+  GOOGLE
+  LINKEDIN
+  PARTENAIRE
+  AUTRE
+}
+
+enum Sexe {
+  M
+  F
+  AUTRE
+}
+
+enum StatutEntreprise {
+  NOUVEAU
+  A_CONTACTER
+  CONTACTE
+  QUALIFIE
+  BESOIN_OUVERT
+  RDV_PLANIFIE
+  PARTENAIRE_ACTIF
+  AUCUN_BESOIN
+  PERDU
+}
+
+enum StatutOffre {
+  OUVERTE
+  POURVUE
+  ANNULEE
+}
+
+enum StatutCandidature {
+  A_ENVOYER
+  ENVOYEE
+  EN_ATTENTE
+  ENTRETIEN_PLANIFIE
+  ENTRETIEN_FAIT
+  ACCEPTEE
+  REFUSEE
+  ANNULEE
+}
+
+enum TypeRDV {
+  APPEL
+  ENTRETIEN_ADMISSION
+  TEST_POSITIONNEMENT
+  RDV_PHYSIQUE
+  ENTRETIEN_ENTREPRISE
+  AUTRE
+}
+
+enum StatutRDV {
+  PLANIFIE
+  FAIT
+  ANNULE
+  NO_SHOW
+}
+
+enum TypeTache {
+  RELANCE_TELEPHONE
+  RELANCE_EMAIL
+  ENVOI_CV
+  PREPARATION_RDV
+  SUIVI_DOSSIER
+  AUTRE
+}
+
+enum StatutTache {
+  A_FAIRE
+  EN_COURS
+  FAIT
+  ANNULE
+}
+
+enum Priorite {
+  BASSE
+  NORMALE
+  HAUTE
+  URGENTE
+}
+
+enum TypeDocument {
+  CV
+  LETTRE_MOTIVATION
+  BULLETINS_SCOLAIRES
+  DIPLOMES
+  RELEVES_NOTES
+  PHOTO_IDENTITE
+  CARTE_IDENTITE
+  ATTESTATION_SS
+  CARTE_SEJOUR
+  CONTRAT_ALTERNANCE_PRECEDENT
+  JUSTIFICATIF_HANDICAP
+  CERFA
+  AUTRE
+}
+
+enum StatutDocument {
+  RECU
+  MANQUANT
+  NON_APPLICABLE
+  EXPIRE
+}
+
+// ─── AUTH.JS (tables gérées par PrismaAdapter) ────────────────────────────────
+
+model User {
+  id         String   @id @default(uuid())
+  email      String   @unique
+  nom        String
+  prenom     String
+  password   String
+  role       UserRole @default(COMMERCIAL)
+  actif      Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Auth.js
+  accounts   Account[]
+  sessions   Session[]
+
+  // Métier
+  etudiants_assignes    Etudiant[]   @relation("ConseillerRef")
+  entreprises_assignees Entreprise[] @relation("ResponsableProspection")
+  taches_assignees      Tache[]      @relation("TacheAssignee")
+  rdvs_animes           RendezVous[] @relation("AnimePar")
+  notes_creees          Note[]
+  logs_actions          ActivityLog[]
+}
+
+model Account {
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── RÉFÉRENTIEL ──────────────────────────────────────────────────────────────
+
+model Formation {
+  id         String     @id @default(uuid())
+  code       String     @unique
+  nom        String
+  niveau     String
+  duree_mois Int
+  actif      Boolean    @default(true)
+  created_at DateTime   @default(now())
+
+  etudiants  Etudiant[]
+}
+
+// ─── ENTITÉS PRINCIPALES ──────────────────────────────────────────────────────
+
+model Etudiant {
+  id                     String          @id @default(uuid())
+  prenom                 String
+  nom                    String
+  email                  String?
+  telephone              String?
+  date_naissance         DateTime?
+  sexe                   Sexe?
+  adresse                String?
+  ville                  String?
+  permis                 Boolean?
+  vehicule               Boolean?
+  situation_handicap     Boolean?        // nullable : inconnu ≠ faux
+
+  formation_id           String?
+  formation              Formation?      @relation(fields: [formation_id], references: [id])
+  type_contrat           TypeContrat?
+  diplome_actuel         String?
+  formation_actuelle     String?
+  specialisation         String?
+
+  etape_process          EtapeEtudiant   @default(NOUVEAU)
+  statut                 StatutEtudiant  @default(EN_COURS)
+  niveau_motivation      Int?
+  niveau_test            String?
+  niveau_cours           String?
+  origine_contact        OrigineContact?
+  statut_motivation      String?
+  campagne               String?
+  apporteur_nom          String?
+
+  conseiller_id          String?
+  conseiller             User?           @relation("ConseillerRef", fields: [conseiller_id], references: [id])
+
+  entreprise_liee_id     String?
+  entreprise_liee        Entreprise?     @relation("EtudiantEntrepriseLiee", fields: [entreprise_liee_id], references: [id])
+
+  date_premier_contact   DateTime?
+  date_prochaine_relance DateTime?
+  note_prochaine_relance String?
+  pack_suivi_alternance  String?
+  cv_url                 String?
+  commentaire            String?
+
+  created_at             DateTime        @default(now())
+  updated_at             DateTime        @updatedAt
+  deleted_at             DateTime?
+
+  rdvs          RendezVous[]
+  taches        Tache[]
+  documents     Document[]
+  candidatures  Candidature[]
+  notes         Note[]
+  activity_logs ActivityLog[]
+
+  @@index([statut])
+  @@index([etape_process])
+  @@index([conseiller_id])
+  @@index([formation_id])
+}
+
+model Entreprise {
+  id                     String           @id @default(uuid())
+  nom                    String
+  secteur                String?
+  type_structure         String?
+  adresse                String?
+  ville                  String?
+  telephone              String?
+  email_general          String?
+  site_web               String?
+  linkedin               String?
+
+  statut                 StatutEntreprise @default(NOUVEAU)
+  besoin_alternant       Boolean?
+  nombre_postes          Int              @default(0)
+  formations_recherchees String?
+  profil_recherche       String?
+  numero_idcc            String?
+  campagne               String?
+
+  date_premier_contact   DateTime?
+  date_prochaine_relance DateTime?
+
+  responsable_id         String?
+  responsable            User?            @relation("ResponsableProspection", fields: [responsable_id], references: [id])
+
+  commentaire            String?
+
+  created_at             DateTime         @default(now())
+  updated_at             DateTime         @updatedAt
+  deleted_at             DateTime?
+
+  contacts       ContactEntreprise[]
+  offres         Offre[]
+  rdvs           RendezVous[]
+  taches         Tache[]
+  candidatures   Candidature[]
+  notes          Note[]
+  activity_logs  ActivityLog[]
+  etudiants_lies Etudiant[]        @relation("EtudiantEntrepriseLiee")
+
+  @@index([nom])
+  @@index([ville])
+  @@index([statut])
+  @@index([responsable_id])
+}
+
+model ContactEntreprise {
+  id            String     @id @default(uuid())
+  nom_complet   String
+  prenom        String?
+  poste         String?
+  email         String?
+  telephone     String?
+  decideur      Boolean    @default(false)
+
+  entreprise_id String
+  entreprise    Entreprise @relation(fields: [entreprise_id], references: [id])
+
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+
+  @@index([entreprise_id])
+}
+
+model Offre {
+  id               String      @id @default(uuid())
+  titre            String
+  description      String?
+  type_contrat     TypeContrat?
+  nombre_postes    Int         @default(1)
+  statut           StatutOffre @default(OUVERTE)
+  date_debut       DateTime?
+  formation_ciblee String?
+
+  entreprise_id    String
+  entreprise       Entreprise  @relation(fields: [entreprise_id], references: [id])
+
+  candidatures     Candidature[]
+
+  created_at       DateTime    @default(now())
+  updated_at       DateTime    @updatedAt
+
+  @@index([entreprise_id])
+  @@index([statut])
+}
+
+model Candidature {
+  id            String            @id @default(uuid())
+  statut        StatutCandidature @default(A_ENVOYER)
+  date_envoi    DateTime?
+  canal_envoi   String?
+  date_retour   DateTime?
+  commentaire   String?
+
+  etudiant_id   String
+  etudiant      Etudiant          @relation(fields: [etudiant_id], references: [id])
+  entreprise_id String
+  entreprise    Entreprise        @relation(fields: [entreprise_id], references: [id])
+  offre_id      String?
+  offre         Offre?            @relation(fields: [offre_id], references: [id])
+
+  notes         Note[]
+  activity_logs ActivityLog[]
+
+  created_at    DateTime          @default(now())
+  updated_at    DateTime          @updatedAt
+
+  @@index([etudiant_id])
+  @@index([entreprise_id])
+  @@index([offre_id])
+  @@index([statut])
+}
+
+// ─── ACTIVITÉS ────────────────────────────────────────────────────────────────
+
+model RendezVous {
+  id            String      @id @default(uuid())
+  type          TypeRDV
+  date          DateTime?
+  duree_minutes Int?
+  statut        StatutRDV   @default(PLANIFIE)
+  notes         String?
+  numero_rdv    Int?
+
+  etudiant_id   String?
+  etudiant      Etudiant?   @relation(fields: [etudiant_id], references: [id])
+  entreprise_id String?
+  entreprise    Entreprise? @relation(fields: [entreprise_id], references: [id])
+  animateur_id  String?
+  animateur     User?       @relation("AnimePar", fields: [animateur_id], references: [id])
+
+  created_at    DateTime    @default(now())
+  updated_at    DateTime    @updatedAt
+
+  @@index([etudiant_id])
+  @@index([entreprise_id])
+  @@index([date])
+  @@index([statut])
+}
+
+model Tache {
+  id              String      @id @default(uuid())
+  titre           String
+  type            TypeTache
+  priorite        Priorite    @default(NORMALE)
+  statut          StatutTache @default(A_FAIRE)
+  date_echeance   DateTime?
+  date_completion DateTime?
+  commentaire     String?
+
+  assigne_id    String?
+  assigne       User?       @relation("TacheAssignee", fields: [assigne_id], references: [id])
+  etudiant_id   String?
+  etudiant      Etudiant?   @relation(fields: [etudiant_id], references: [id])
+  entreprise_id String?
+  entreprise    Entreprise? @relation(fields: [entreprise_id], references: [id])
+
+  created_at    DateTime    @default(now())
+  updated_at    DateTime    @updatedAt
+
+  @@index([assigne_id])
+  @@index([statut])
+  @@index([date_echeance])
+  @@index([etudiant_id])
+  @@index([entreprise_id])
+}
+
+// ─── ADMINISTRATIF ────────────────────────────────────────────────────────────
+
+model Document {
+  id          String         @id @default(uuid())
+  type        TypeDocument
+  statut      StatutDocument @default(MANQUANT)
+  nom_fichier String?
+  url         String?
+  commentaire String?
+
+  etudiant_id String
+  etudiant    Etudiant       @relation(fields: [etudiant_id], references: [id])
+
+  created_at  DateTime       @default(now())
+  updated_at  DateTime       @updatedAt
+
+  @@index([etudiant_id])
+  @@index([type])
+  @@index([statut])
+}
+
+// ─── TRANSVERSAL ──────────────────────────────────────────────────────────────
+
+model Note {
+  id             String       @id @default(uuid())
+  contenu        String
+  auteur_id      String?
+  auteur         User?        @relation(fields: [auteur_id], references: [id])
+
+  etudiant_id    String?
+  etudiant       Etudiant?    @relation(fields: [etudiant_id], references: [id])
+  entreprise_id  String?
+  entreprise     Entreprise?  @relation(fields: [entreprise_id], references: [id])
+  candidature_id String?
+  candidature    Candidature? @relation(fields: [candidature_id], references: [id])
+
+  created_at     DateTime     @default(now())
+
+  @@index([etudiant_id])
+  @@index([entreprise_id])
+  @@index([candidature_id])
+  @@index([created_at])
+}
+
+model ActivityLog {
+  id              String       @id @default(uuid())
+  action          String
+  champ           String?
+  ancienne_valeur String?
+  nouvelle_valeur String?
+  auteur_id       String?
+  auteur          User?        @relation(fields: [auteur_id], references: [id])
+  auteur_nom      String?      // dénormalisé : survit à la suppression du user
+
+  etudiant_id    String?
+  etudiant       Etudiant?    @relation(fields: [etudiant_id], references: [id])
+  entreprise_id  String?
+  entreprise     Entreprise?  @relation(fields: [entreprise_id], references: [id])
+  candidature_id String?
+  candidature    Candidature? @relation(fields: [candidature_id], references: [id])
+
+  created_at     DateTime     @default(now())
+
+  @@index([etudiant_id])
+  @@index([entreprise_id])
+  @@index([candidature_id])
+  @@index([created_at])
+}
