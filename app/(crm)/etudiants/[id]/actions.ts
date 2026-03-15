@@ -189,12 +189,17 @@ export async function modifierEtudiant(
     const c = await prisma.user.findUnique({ where: { id: conseiller_id }, select: { id: true } })
     if (!c) return { error: "Conseiller introuvable" }
   }
-  if (entreprise_liee_id) {
-    const e = await prisma.entreprise.findFirst({
-      where: { id: entreprise_liee_id, deleted_at: null },
+  const entrepriseLieeId = s(formData.get("entreprise_liee_id")) ?? undefined
+
+  if (entrepriseLieeId) {
+    const entrepriseLiee = await prisma.entreprise.findFirst({
+      where: { id: entrepriseLieeId, deleted_at: null },
       select: { id: true },
     })
-    if (!e) return { error: "Entreprise liée introuvable" }
+
+    if (!entrepriseLiee) {
+      return { error: "Entreprise liée introuvable" }
+    }
   }
 
   await prisma.etudiant.update({
@@ -208,7 +213,7 @@ export async function modifierEtudiant(
       formation_id:           formation_id ?? null,
       type_contrat:           type_contrat ?? null,
       conseiller_id:          conseiller_id ?? null,
-      entreprise_liee_id:     entreprise_liee_id ?? null,
+      entreprise_liee_id:     entrepriseLieeId ?? null,
       date_naissance:         toDate(date_naissance ?? null),
       date_premier_contact:   toDate(date_premier_contact ?? null),
       date_prochaine_relance: toDate(date_prochaine_relance ?? null),

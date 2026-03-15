@@ -43,6 +43,8 @@ type SearchParams = Promise<{
   etape?: string
   conseiller_id?: string
   page?: string
+  formation_code?: string
+  rentree?: string
 }>
 
 export default async function EtudiantsPage({
@@ -51,12 +53,14 @@ export default async function EtudiantsPage({
   searchParams: SearchParams
 }) {
   const params = await searchParams
-  const q            = params.q?.trim() ?? ""
-  const statut       = params.statut as StatutEtudiant | undefined
-  const etape        = params.etape as EtapeEtudiant | undefined
-  const conseiller_id = params.conseiller_id ?? ""
-  const page          = Math.max(1, parseInt(params.page ?? "1", 10))
-  const skip          = (page - 1) * PAGE_SIZE
+  const q              = params.q?.trim() ?? ""
+  const statut         = params.statut as StatutEtudiant | undefined
+  const etape          = params.etape as EtapeEtudiant | undefined
+  const conseiller_id  = params.conseiller_id ?? ""
+  const formation_code = params.formation_code ?? ""
+  const rentree        = params.rentree ?? ""
+  const page           = Math.max(1, parseInt(params.page ?? "1", 10))
+  const skip           = (page - 1) * PAGE_SIZE
 
   // Filtres Prisma
   const where: Prisma.EtudiantWhereInput = {
@@ -68,13 +72,20 @@ export default async function EtudiantsPage({
         { email:  { contains: q, mode: "insensitive" } },
       ],
     }),
-    ...(statut && { statut }),
-    ...(etape  && { etape_process: etape }),
+    // Statut : param explicite prioritaire ; sinon rentree implique les deux statuts inscrits
+    ...(statut
+      ? { statut }
+      : rentree
+      ? { statut: { in: ["INSCRIT_EN_RECHERCHE", "INSCRIT_ALTERNANCE"] as StatutEtudiant[] } }
+      : {}),
+    ...(etape && { etape_process: etape }),
     ...(conseiller_id === "none"
       ? { conseiller_id: null }
       : conseiller_id
       ? { conseiller_id }
       : {}),
+    // Filtre formation par code (relation)
+    ...(formation_code && { formation: { code: formation_code } }),
   }
 
   const [etudiants, total, conseillers] = await Promise.all([
@@ -107,10 +118,12 @@ export default async function EtudiantsPage({
   // Helpers pour conserver les autres params lors de la pagination
   function pageUrl(p: number) {
     const sp = new URLSearchParams()
-    if (q)            sp.set("q", q)
-    if (statut)       sp.set("statut", statut)
-    if (etape)        sp.set("etape", etape)
+    if (q)             sp.set("q", q)
+    if (statut)        sp.set("statut", statut)
+    if (etape)         sp.set("etape", etape)
     if (conseiller_id) sp.set("conseiller_id", conseiller_id)
+    if (formation_code) sp.set("formation_code", formation_code)
+    if (rentree)       sp.set("rentree", rentree)
     sp.set("page", String(p))
     return `/etudiants?${sp.toString()}`
   }
@@ -132,6 +145,19 @@ export default async function EtudiantsPage({
           + Nouvel étudiant
         </Link>
       </div>
+
+      {/* Banderole filtre rentrée actif */}
+      {(rentree || formation_code) && (
+        <div className="mb-4 px-4 py-2.5 bg-indigo-50 border border-indigo-100 rounded-md text-sm text-indigo-800 flex items-center justify-between">
+          <span>
+            Filtre actif : {formation_code && <strong>{formation_code}</strong>}
+            {" "}· Statuts inscrits (en recherche + alternance)
+          </span>
+          <Link href="/etudiants" className="text-indigo-700 underline text-xs ml-4 shrink-0">
+            Réinitialiser
+          </Link>
+        </div>
+      )}
 
       {/* Alerte sans conseiller */}
       {!conseiller_id && sansConseiller > 0 && (
@@ -200,7 +226,7 @@ export default async function EtudiantsPage({
           Filtrer
         </button>
 
-        {(q || statut || etape || conseiller_id) && (
+        {(q || statut || etape || conseiller_id || formation_code || rentree) && (
           <Link
             href="/etudiants"
             className="text-sm text-gray-500 hover:text-gray-800 py-1.5 px-2"
@@ -208,6 +234,9 @@ export default async function EtudiantsPage({
             Réinitialiser
           </Link>
         )}
+        {/* Préserver les filtres preset lors de la soumission du formulaire */}
+        {formation_code && <input type="hidden" name="formation_code" value={formation_code} />}
+        {rentree && <input type="hidden" name="rentree" value={rentree} />}
       </form>
 
       {/* Tableau */}

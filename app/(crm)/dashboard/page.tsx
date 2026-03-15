@@ -1,6 +1,16 @@
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 
+const FORMATIONS_RENTREE = [
+  { label: "NDRC 1",          code: "BTS_NDRC_1" },
+  { label: "NDRC 2",          code: "BTS_NDRC_2" },
+  { label: "MCO 1",           code: "BTS_MCO_1" },
+  { label: "MCO 2",           code: "BTS_MCO_2" },
+  { label: "SAM 1",           code: "BTS_SAM_1" },
+  { label: "Bachelor RDC 3",  code: "BACHELOR_RDC" },
+  { label: "Bachelor RH 3",   code: "BACHELOR_RH" },
+] as const
+
 export default async function DashboardPage() {
   const now = new Date()
 
@@ -26,6 +36,31 @@ export default async function DashboardPage() {
       where: { statut: "PLANIFIE", date: { gt: now } },
     }),
   ])
+
+  // Effectifs rentrée septembre 2026 — une seule requête
+  const formationsAvecEffectifs = await prisma.formation.findMany({
+    where: {
+      code: { in: FORMATIONS_RENTREE.map((f) => f.code) },
+    },
+    select: {
+      code: true,
+      _count: {
+        select: {
+          etudiants: {
+            where: {
+              deleted_at: null,
+              statut: { in: ["INSCRIT_EN_RECHERCHE", "INSCRIT_ALTERNANCE"] },
+            },
+          },
+        },
+      },
+    },
+  })
+
+  // Map code → count (0 si la formation n'existe pas encore en base)
+  const effectifsMap = Object.fromEntries(
+    formationsAvecEffectifs.map((f) => [f.code, f._count.etudiants])
+  )
 
   const kpis = [
     {
@@ -84,6 +119,27 @@ export default async function DashboardPage() {
             <p className={`text-3xl font-bold ${kpi.color}`}>{kpi.value}</p>
           </Link>
         ))}
+      </div>
+
+      {/* Effectifs rentrée septembre 2026 */}
+      <div className="bg-white border border-gray-200 rounded-lg p-5 mb-6">
+        <h2 className="text-sm font-semibold text-gray-700 mb-4">
+          Effectifs rentrée septembre 2026
+        </h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+          {FORMATIONS_RENTREE.map(({ label, code }) => (
+            <Link
+              key={code}
+              href={`/etudiants?formation_code=${code}&rentree=2026`}
+              className="flex flex-col items-center justify-center border border-indigo-100 bg-indigo-50 rounded-lg p-4 hover:shadow-sm transition-shadow text-center"
+            >
+              <span className="text-2xl font-bold text-indigo-700">
+                {effectifsMap[code] ?? 0}
+              </span>
+              <span className="text-xs text-gray-500 mt-1 leading-tight">{label}</span>
+            </Link>
+          ))}
+        </div>
       </div>
 
       {/* À traiter */}
